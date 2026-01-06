@@ -1,9 +1,19 @@
-###
+#################################################################################
 
 * poetry new ______
 
 * poetry install
 
-* task run  --- roda o server
+-------------------------------------------------------------------------
+|                                                                       |        
+|    caminho: /projetos_apps/app_agendamento_backend/fast_agend         |
+|    poetry shell para ativar ambiente virtual                          |
+|    task run  --- roda o server                                        |
+|                                                                       |
+|    ou      uvicorn fast_agend.app:app --reload                        |        
+|                                                                       |        
+|                                                                       |
+|                                                                       |
+-------------------------------------------------------------------------
 
-* task test --- executa o teste
+task test --- executa o teste
