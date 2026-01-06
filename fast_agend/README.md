@@ -17,3 +17,6 @@
 -------------------------------------------------------------------------
 
 task test --- executa o teste
+
+* Acessar o banco:
+-  docker exec -it agend_db psql -U AGEND -d postgres_db
