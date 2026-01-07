@@ -20,3 +20,9 @@ task test --- executa o teste
 
 * Acessar o banco:
 -  docker exec -it agend_db psql -U AGEND -d postgres_db
+
+Executar migrações no banco:
+
+1. poetry run alembic revision --autogenerate -m "create users table"
+
+2. poetry run alembic upgrade head

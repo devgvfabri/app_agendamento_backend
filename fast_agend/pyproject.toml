@@ -8,6 +8,10 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = {extras = ["standard"], version = "^0.128.0"}
+sqlalchemy = "^2.0.45"
+psycopg = "^3.3.2"
+alembic = "^1.17.2"
+psycopg2-binary = "^2.9.11"
 
 
 [tool.poetry.group.dev.dependencies]
