@@ -1,0 +1,51 @@
+from fastapi import APIRouter, Depends, HTTPException
+from http import HTTPStatus
+from sqlalchemy.orm import Session
+
+from fast_agend.core.deps import get_db
+from fast_agend.repositories.user_repository import UserRepository
+from fast_agend.services.user_service import UserService
+from fast_agend.schemas import UserSchema, UserPublic, UserList
+
+router = APIRouter(prefix="/users", tags=["Users"])
+
+
+def get_user_service(db: Session = Depends(get_db)) -> UserService:
+    repo = UserRepository(db)
+    return UserService(repo)
+
+
+@router.post("/", status_code=HTTPStatus.CREATED, response_model=UserPublic)
+def create_user(
+    user: UserSchema,
+    service: UserService = Depends(get_user_service),
+):
+    return service.create_user(user)
+
+
+@router.get("/", response_model=UserList)
+def list_users(service: UserService = Depends(get_user_service)):
+    return {"users": service.list_users()}
+
+
+@router.put("/{user_id}", response_model=UserPublic)
+def update_user(
+    user_id: int,
+    user: UserSchema,
+    service: UserService = Depends(get_user_service),
+):
+    updated = service.update_user(user_id, user)
+    if not updated:
+        raise HTTPException(HTTPStatus.NOT_FOUND, "Usuário não encontrado")
+    return updated
+
+
+@router.delete("/{user_id}", response_model=UserPublic)
+def delete_user(
+    user_id: int,
+    service: UserService = Depends(get_user_service),
+):
+    deleted = service.delete_user(user_id)
+    if not deleted:
+        raise HTTPException(HTTPStatus.NOT_FOUND, "Usuário não encontrado")
+    return deleted
