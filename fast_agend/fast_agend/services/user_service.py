@@ -11,6 +11,8 @@ class UserService:
             username=user_data.username,
             email=user_data.email,
             password=user_data.password,
+            cpf=user_data.cpf,
+            phone=user_data.phone,
         )
         return self.repository.create(user)
 
@@ -25,6 +27,8 @@ class UserService:
         user.username = user_data.username
         user.email = user_data.email
         user.password = user_data.password
+        user.cpf = user_data.cpf
+        user.phone = user_data.phone
 
         return self.repository.update(user)
 
