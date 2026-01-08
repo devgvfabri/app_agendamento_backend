@@ -1,9 +1,9 @@
 from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.schemas import UserSchema
 from fast_agend.models import User
-from fast_agend.utils import validar_cpf, cpf_normalize
+from fast_agend.utils import validar_cpf, cpf_normalize, validate_password
 from fast_agend.exceptions.user_exceptions import InvalidCPFException, ExistingNumberException, UsernameAlreadyExistsException
-from fast_agend.exceptions.user_exceptions import EmailAlreadyExistsException, CPFAlreadyExistsException
+from fast_agend.exceptions.user_exceptions import EmailAlreadyExistsException, CPFAlreadyExistsException, InvalidCPFException
 
 class UserService:
     def __init__(self, repository: UserRepository):
@@ -17,6 +17,9 @@ class UserService:
             cpf=cpf_normalize(user_data.cpf),
             phone=user_data.phone,
         )
+        
+        validate_password(user_data.password)
+
         if not validar_cpf(user.cpf):
             raise InvalidCPFException()
         
@@ -48,6 +51,18 @@ class UserService:
         
         if not validar_cpf(user.cpf):
             raise InvalidCPFException()
+
+        username_owner = self.repository.get_by_username(user_data.username)
+        if username_owner and username_owner.id != user_id:
+            raise UsernameAlreadyExistsException()
+
+        cpf_owner = self.repository.get_by_cpf(user_data.cpf)
+        if cpf_owner and cpf_owner.id != user_id:
+            raise CPFAlreadyExistsException()
+
+        email_owner = self.repository.get_by_email(user_data.email)
+        if email_owner and email_owner.id != user_id:
+            raise EmailAlreadyExistsException()
 
         phone_owner = self.repository.get_by_phone(user_data.phone)
         if phone_owner and phone_owner.id != user_id:

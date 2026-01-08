@@ -7,7 +7,7 @@ from fast_agend.models import User
 from fast_agend.core.deps import get_db
 from fast_agend.routes.user import router as users_router
 from fast_agend.exceptions.user_exceptions import InvalidCPFException, ExistingNumberException, UsernameAlreadyExistsException
-from fast_agend.exceptions.user_exceptions import CPFAlreadyExistsException, EmailAlreadyExistsException
+from fast_agend.exceptions.user_exceptions import CPFAlreadyExistsException, EmailAlreadyExistsException, InvalidPasswordException
 app = FastAPI(title='Backend do App de Agendamento')
 
 app.include_router(users_router)
@@ -64,6 +64,18 @@ async def existing_email_exception_handler(
 async def existing_number_exception_handler(
     request: Request,
     exc: ExistingNumberException
+):
+    return JSONResponse(
+        status_code=400,
+        content={
+            "detail": str(exc)
+        }
+    )
+
+@app.exception_handler(InvalidPasswordException)
+async def invalid_password(
+    request: Request,
+    exc: InvalidPasswordException
 ):
     return JSONResponse(
         status_code=400,

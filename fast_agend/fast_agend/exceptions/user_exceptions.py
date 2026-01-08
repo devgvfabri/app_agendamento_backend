@@ -17,3 +17,6 @@ class CPFAlreadyExistsException(Exception):
 class ExistingNumberException(Exception):
     def __init__(self, message: str = "Número já registrado!"):
         super().__init__(message)
+
+class InvalidPasswordException(Exception):
+    pass
