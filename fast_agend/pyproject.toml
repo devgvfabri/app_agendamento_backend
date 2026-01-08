@@ -12,6 +12,8 @@ sqlalchemy = "^2.0.45"
 psycopg = "^3.3.2"
 alembic = "^1.17.2"
 psycopg2-binary = "^2.9.11"
+passlib = {version = "1.7.4", extras = ["bcrypt"]}
+bcrypt = "3.2.2"
 
 
 [tool.poetry.group.dev.dependencies]

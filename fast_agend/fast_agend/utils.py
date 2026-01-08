@@ -1,5 +1,7 @@
 import re
 from fast_agend.exceptions.user_exceptions import InvalidPasswordException 
+
+
 def validar_cpf(cpf: str) -> bool:
     cpf = ''.join(filter(str.isdigit, cpf))
 
