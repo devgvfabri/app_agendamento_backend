@@ -25,3 +25,15 @@ class UserRepository:
     def delete(self, user: User) -> None:
         self.db.delete(user)
         self.db.commit()
+
+    def get_by_cpf(self, cpf: str):
+        return self.db.query(User).filter(User.cpf == cpf).first()
+
+    def get_by_email(self, email: str):
+        return self.db.query(User).filter(User.email == email).first()
+
+    def get_by_username(self, username: str):
+        return self.db.query(User).filter(User.username == username).first()
+
+    def get_by_phone(self, phone: str):
+        return self.db.query(User).filter(User.phone == phone).first()
