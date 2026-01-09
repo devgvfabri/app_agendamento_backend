@@ -5,7 +5,10 @@ from fast_agend.utils import validar_cpf, cpf_normalize, validate_password
 from fast_agend.exceptions.user_exceptions import InvalidCPFException, ExistingNumberException, UsernameAlreadyExistsException
 from fast_agend.exceptions.user_exceptions import EmailAlreadyExistsException, CPFAlreadyExistsException, InvalidCPFException
 from fast_agend.security.password import hash_password
-
+from fastapi import Depends, HTTPException, status
+from jose import JWTError, jwt
+from fast_agend.security.password import SECRET_KEY, ALGORITHM
+from fast_agend.security.password import oauth2_scheme
 
 class UserService:
     def __init__(self, repository: UserRepository):
@@ -93,4 +96,21 @@ class UserService:
             return None
 
         self.repository.delete(user)
+        return user
+
+    def get_current_user(token: str = Depends(oauth2_scheme)):
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+
+            if not username:
+                raise HTTPException(status_code=401, detail="Token inválido")
+
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Token inválido")
+
+        user = get_user_by_username(username)
+        if not user:
+            raise HTTPException(status_code=401, detail="Usuário não encontrado")
+
         return user
