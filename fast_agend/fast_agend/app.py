@@ -6,11 +6,13 @@ from sqlalchemy.orm import Session
 from fast_agend.models import User
 from fast_agend.core.deps import get_db
 from fast_agend.routes.user import router as users_router
+from fast_agend.routes.auth import router as auth_router
 from fast_agend.exceptions.user_exceptions import InvalidCPFException, ExistingNumberException, UsernameAlreadyExistsException
 from fast_agend.exceptions.user_exceptions import CPFAlreadyExistsException, EmailAlreadyExistsException, InvalidPasswordException
 app = FastAPI(title='Backend do App de Agendamento')
 
 app.include_router(users_router)
+app.include_router(auth_router)
 
 @app.exception_handler(InvalidCPFException)
 async def invalid_cpf_exception_handler(

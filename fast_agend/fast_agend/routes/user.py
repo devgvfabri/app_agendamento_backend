@@ -7,6 +7,11 @@ from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.services.user_service import UserService
 from fast_agend.schemas import UserSchema, UserPublic, UserList, UserCreate, UserResponse, UserUpdateSchema
 
+from fastapi import Depends
+from fast_agend.security.password import oauth2_scheme
+from fast_agend.core.deps import get_auth_service
+from fast_agend.services.auth_service import AuthService
+
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
@@ -49,3 +54,10 @@ def delete_user(
     if not deleted:
         raise HTTPException(HTTPStatus.NOT_FOUND, "Usuário não encontrado")
     return deleted
+
+@router.get("/me", response_model=UserResponse)
+def read_users_me(
+    token: str = Depends(oauth2_scheme),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    return auth_service.get_current_user(token)
