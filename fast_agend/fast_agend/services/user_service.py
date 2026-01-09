@@ -1,5 +1,5 @@
 from fast_agend.repositories.user_repository import UserRepository
-from fast_agend.schemas import UserSchema, UserCreate
+from fast_agend.schemas import UserSchema, UserCreate, UserUpdateSchema
 from fast_agend.models import User
 from fast_agend.utils import validar_cpf, cpf_normalize, validate_password
 from fast_agend.exceptions.user_exceptions import InvalidCPFException, ExistingNumberException, UsernameAlreadyExistsException
@@ -43,38 +43,47 @@ class UserService:
     def list_users(self) -> list[User]:
         return self.repository.get_all()
 
-    def update_user(self, user_id: int, user_data: UserSchema) -> User | None:
+    def update_user(self, user_id: int, user_data: UserUpdateSchema) -> User | None:
         user = self.repository.get_by_id(user_id)
         if not user:
             return None
-        
-        if not validar_cpf(user.cpf):
-            raise InvalidCPFException()
 
-        if user_data.password:
-            validate_password(user_data.password)
-            user.password = hash_password(user_data.password)
+        data = user_data.model_dump(exclude_unset=True)
 
-        username_owner = self.repository.get_by_username(user_data.username)
-        if username_owner and username_owner.id != user_id:
-            raise UsernameAlreadyExistsException()
+        if "password" in data:
+            validate_password(data["password"])
+            user.password = hash_password(data["password"])
 
-        cpf_owner = self.repository.get_by_cpf(user_data.cpf)
-        if cpf_owner and cpf_owner.id != user_id:
-            raise CPFAlreadyExistsException()
+        if "username" in data:
+            username_owner = self.repository.get_by_username(data["username"])
+            if username_owner and username_owner.id != user_id:
+                raise UsernameAlreadyExistsException()
+            user.username = data["username"]
 
-        email_owner = self.repository.get_by_email(user_data.email)
-        if email_owner and email_owner.id != user_id:
-            raise EmailAlreadyExistsException()
+        if "cpf" in data:
+            cpf = cpf_normalize(data["cpf"])
 
-        phone_owner = self.repository.get_by_phone(user_data.phone)
-        if phone_owner and phone_owner.id != user_id:
-            raise ExistingNumberException()
+            if not validar_cpf(cpf):
+                raise InvalidCPFException()
 
-        user.username = user_data.username
-        user.email = user_data.email
-        user.cpf = cpf_normalize(user_data.cpf)
-        user.phone = user_data.phone
+            cpf_owner = self.repository.get_by_cpf(cpf)
+            if cpf_owner and cpf_owner.id != user_id:
+                raise CPFAlreadyExistsException()
+
+            user.cpf = cpf
+
+        if "email" in data:
+            email_owner = self.repository.get_by_email(data["email"])
+            if email_owner and email_owner.id != user_id:
+                raise EmailAlreadyExistsException()
+            user.email = data["email"]
+
+        if "phone" in data:
+            phone_owner = self.repository.get_by_phone(data["phone"])
+            if phone_owner and phone_owner.id != user_id:
+                raise ExistingNumberException()
+
+            user.phone = data["phone"]
 
         return self.repository.update(user)
 

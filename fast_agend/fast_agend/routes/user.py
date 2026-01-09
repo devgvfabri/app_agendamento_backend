@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from fast_agend.core.deps import get_db
 from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.services.user_service import UserService
-from fast_agend.schemas import UserSchema, UserPublic, UserList, UserCreate, UserResponse
+from fast_agend.schemas import UserSchema, UserPublic, UserList, UserCreate, UserResponse, UserUpdateSchema
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -28,10 +28,10 @@ def list_users(service: UserService = Depends(get_user_service)):
     return {"users": service.list_users()}
 
 
-@router.put("/{user_id}", response_model=UserResponse)
+@router.put("/{user_id}", response_model=UserPublic)
 def update_user(
     user_id: int,
-    user: UserSchema,
+    user: UserUpdateSchema,
     service: UserService = Depends(get_user_service),
 ):
     updated = service.update_user(user_id, user)

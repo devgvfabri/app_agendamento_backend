@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 
 class Message(BaseModel):
@@ -38,6 +39,13 @@ class UserUpdate(BaseModel):
     cpf: str
     phone: str
 
+
+class UserUpdateSchema(BaseModel):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    cpf: Optional[str] = None
+    phone: Optional[str] = None
 
 class UserResponse(BaseModel):
     id: int
