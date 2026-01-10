@@ -38,10 +38,21 @@ def update_user(
     user_id: int,
     user: UserUpdateSchema,
     service: UserService = Depends(get_user_service),
+    token: str = Depends(oauth2_scheme),
+    auth_service: AuthService = Depends(get_auth_service),
 ):
+    current_user = auth_service.get_current_user(token)
+
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail="Você não pode alterar outro usuário",
+        )
+
     updated = service.update_user(user_id, user)
     if not updated:
         raise HTTPException(HTTPStatus.NOT_FOUND, "Usuário não encontrado")
+
     return updated
 
 
@@ -49,10 +60,21 @@ def update_user(
 def delete_user(
     user_id: int,
     service: UserService = Depends(get_user_service),
+    token: str = Depends(oauth2_scheme),
+    auth_service: AuthService = Depends(get_auth_service),
 ):
+    current_user = auth_service.get_current_user(token)
+
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail="Você não pode excluir outro usuário",
+        )
+
     deleted = service.delete_user(user_id)
     if not deleted:
         raise HTTPException(HTTPStatus.NOT_FOUND, "Usuário não encontrado")
+
     return deleted
 
 @router.get("/me", response_model=UserResponse)
