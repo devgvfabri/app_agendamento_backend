@@ -1,6 +1,11 @@
 import re
 from fast_agend.exceptions.user_exceptions import InvalidPasswordException 
-
+import random
+import smtplib
+from email.message import EmailMessage
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 def validar_cpf(cpf: str) -> bool:
     cpf = ''.join(filter(str.isdigit, cpf))
@@ -42,3 +47,36 @@ def validate_password(password: str) -> None:
         raise InvalidPasswordException(
             "A senha deve conter pelo menos um caractere especial."
         )
+
+def generate_code():
+        return str(random.randint(100000, 999999))
+
+def send_verification_email(email: str, code: str):
+    msg = EmailMessage()
+    msg["Subject"] = "Confirme seu e-mail"
+    msg["From"] = f"FastAgend <{os.getenv('SMTP_USER')}>"
+    msg["To"] = email
+
+    msg.set_content("Seu cliente de e-mail não suporta HTML.")
+
+    msg.add_alternative(
+        f"""
+        <html>
+            <body>
+                <h2>Confirmação de e-mail</h2>
+                <p>Seu código:</p>
+                <h1>{code}</h1>
+                <p>Expira em <strong>15 minutos</strong>.</p>
+            </body>
+        </html>
+        """,
+        subtype="html",
+    )
+
+    with smtplib.SMTP(os.getenv("SMTP_HOST"), int(os.getenv("SMTP_PORT"))) as server:
+        server.starttls()
+        server.login(
+            os.getenv("SMTP_USER"),
+            os.getenv("SMTP_PASSWORD"),
+        )
+        server.send_message(msg)

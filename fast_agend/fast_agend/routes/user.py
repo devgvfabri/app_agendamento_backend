@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from http import HTTPStatus
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
 
 from fast_agend.core.deps import get_db
 from fast_agend.repositories.user_repository import UserRepository
@@ -11,6 +12,9 @@ from fastapi import Depends
 from fast_agend.security.password import oauth2_scheme
 from fast_agend.core.deps import get_auth_service
 from fast_agend.services.auth_service import AuthService
+from fast_agend.utils import send_verification_email, generate_code
+from fast_agend.core.deps import get_current_user
+from fast_agend.models import User, VerificationToken
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -83,3 +87,48 @@ def read_users_me(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     return auth_service.get_current_user(token)
+
+@router.post("/verify/email/request")
+def request_email_verification(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    code = generate_code()
+
+    token = VerificationToken(
+        user_id=user.id,
+        code=code,
+        type="email",
+        expires_at=datetime.utcnow() + timedelta(minutes=15)
+    )
+
+    db.add(token)
+    db.commit()
+
+    send_verification_email(user.email, code)
+
+    return {"message": "Código enviado para seu e-mail"}
+
+@router.post("/verify/email/confirm")
+def confirm_email_verification(
+    code: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    token = db.query(VerificationToken).filter_by(
+        user_id=user.id,
+        code=code,
+        type="email"
+    ).first()
+
+    if not token:
+        raise HTTPException(400, "Código inválido")
+
+    if token.expires_at < datetime.utcnow():
+        raise HTTPException(400, "Código expirado")
+
+    user.is_email_verified = True
+    db.delete(token)
+    db.commit()
+
+    return {"message": "E-mail verificado com sucesso"}
