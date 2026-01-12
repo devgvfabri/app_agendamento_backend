@@ -24,5 +24,5 @@ class VerificationToken(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     code: Mapped[str] = mapped_column(nullable=False)
-    type = Mapped[str] 
+    type: Mapped[str] = mapped_column(nullable=False)
     expires_at : Mapped[datetime] = mapped_column(server_default=func.now())

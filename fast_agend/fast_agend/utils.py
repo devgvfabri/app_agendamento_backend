@@ -3,9 +3,17 @@ from fast_agend.exceptions.user_exceptions import InvalidPasswordException
 import random
 import smtplib
 from email.message import EmailMessage
-import os
 from dotenv import load_dotenv
 load_dotenv()
+
+import os
+import smtplib
+from email.message import EmailMessage
+
+SMTP_HOST = os.getenv("SMTP_HOST")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
 def validar_cpf(cpf: str) -> bool:
     cpf = ''.join(filter(str.isdigit, cpf))
@@ -51,32 +59,17 @@ def validate_password(password: str) -> None:
 def generate_code():
         return str(random.randint(100000, 999999))
 
-def send_verification_email(email: str, code: str):
+def send_verification_email(to_email: str, code: str):
     msg = EmailMessage()
-    msg["Subject"] = "Confirme seu e-mail"
-    msg["From"] = f"FastAgend <{os.getenv('SMTP_USER')}>"
-    msg["To"] = email
+    msg["Subject"] = "Verificação de e-mail"
+    msg["From"] = SMTP_USER
+    msg["To"] = to_email
+    msg.set_content(f"Seu código de verificação é: {code}")
+    print(SMTP_HOST)
 
-    msg.set_content("Seu cliente de e-mail não suporta HTML.")
-
-    msg.add_alternative(
-        f"""
-        <html>
-            <body>
-                <h2>Confirmação de e-mail</h2>
-                <p>Seu código:</p>
-                <h1>{code}</h1>
-                <p>Expira em <strong>15 minutos</strong>.</p>
-            </body>
-        </html>
-        """,
-        subtype="html",
-    )
-
-    with smtplib.SMTP(os.getenv("SMTP_HOST"), int(os.getenv("SMTP_PORT"))) as server:
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+        server.ehlo()
         server.starttls()
-        server.login(
-            os.getenv("SMTP_USER"),
-            os.getenv("SMTP_PASSWORD"),
-        )
+        server.ehlo()
+        server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)

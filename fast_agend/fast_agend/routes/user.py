@@ -90,11 +90,15 @@ def read_users_me(
 
 @router.post("/verify/email/request")
 def request_email_verification(
+    email: str,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    service: UserService = Depends(get_user_service)
 ):
-    code = generate_code()
+    user = service.get_user_by_email(email)
+    if not user:
+        raise HTTPException(404, "Usuário não encontrado")
 
+    code = generate_code()
     token = VerificationToken(
         user_id=user.id,
         code=code,
@@ -106,15 +110,20 @@ def request_email_verification(
     db.commit()
 
     send_verification_email(user.email, code)
-
     return {"message": "Código enviado para seu e-mail"}
+
 
 @router.post("/verify/email/confirm")
 def confirm_email_verification(
+    email: str,
     code: str,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    service: UserService = Depends(get_user_service)
 ):
+    user = service.get_user_by_email(email)
+    if not user:
+        raise HTTPException(404, "Usuário não encontrado")
+
     token = db.query(VerificationToken).filter_by(
         user_id=user.id,
         code=code,

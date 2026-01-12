@@ -8,7 +8,8 @@ def get_db():
     finally:
         db.close()
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
+from http import HTTPStatus
 from sqlalchemy.orm import Session
 
 from fast_agend.repositories.user_repository import UserRepository
