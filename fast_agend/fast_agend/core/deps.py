@@ -1,15 +1,5 @@
 from fast_agend.core.database import SessionLocal
 from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException
-from http import HTTPStatus
-from sqlalchemy.orm import Session
-from fast_agend.repositories.user_repository import UserRepository
-from fast_agend.services.auth_service import AuthService
-from fast_agend.core.deps import get_db
-from fast_agend.security.password import oauth2_scheme, SECRET_KEY, ALGORITHM
-from fast_agend.models import User
-from jose import JWTError, jwt
-
 
 def get_db():
     db: Session = SessionLocal()
@@ -18,6 +8,16 @@ def get_db():
     finally:
         db.close()
 
+from fastapi import Depends, HTTPException
+from http import HTTPStatus
+from sqlalchemy.orm import Session
+
+from fast_agend.repositories.user_repository import UserRepository
+from fast_agend.services.auth_service import AuthService
+from fast_agend.core.deps import get_db
+from fast_agend.security.password import oauth2_scheme, SECRET_KEY, ALGORITHM
+from fast_agend.models import User
+from jose import JWTError, jwt
 
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
     repo = UserRepository(db)
@@ -43,3 +43,4 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Usuário não encontrado")
 
     return user
+
