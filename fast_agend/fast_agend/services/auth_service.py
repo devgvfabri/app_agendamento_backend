@@ -1,7 +1,6 @@
 from fastapi import HTTPException, status
 from jose import jwt, JWTError
 from datetime import timedelta
-
 from fast_agend.security.password import oauth2_scheme, SECRET_KEY, ALGORITHM, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from fast_agend.repositories.user_repository import UserRepository
 

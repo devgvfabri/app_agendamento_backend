@@ -2,12 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from http import HTTPStatus
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-
 from fast_agend.core.deps import get_db
 from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.services.user_service import UserService
 from fast_agend.schemas import UserSchema, UserPublic, UserList, UserCreate, UserResponse, UserUpdateSchema
-
 from fastapi import Depends
 from fast_agend.security.password import oauth2_scheme
 from fast_agend.core.deps import get_auth_service
