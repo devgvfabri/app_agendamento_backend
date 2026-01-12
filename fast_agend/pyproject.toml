@@ -15,6 +15,7 @@ psycopg2-binary = "^2.9.11"
 passlib = {version = "1.7.4", extras = ["bcrypt"]}
 bcrypt = "3.2.2"
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}
+python-dotenv = "^1.2.1"
 
 
 [tool.poetry.group.dev.dependencies]

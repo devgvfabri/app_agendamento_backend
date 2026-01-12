@@ -114,3 +114,6 @@ class UserService:
             raise HTTPException(status_code=401, detail="Usuário não encontrado")
 
         return user
+    
+    def get_user_by_email(self, email: str) -> User | None:
+        return self.repository.get_by_email(email)

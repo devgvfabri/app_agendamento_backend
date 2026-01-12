@@ -37,3 +37,6 @@ class UserRepository:
 
     def get_by_phone(self, phone: str):
         return self.db.query(User).filter(User.phone == phone).first()
+
+    def get_is_verified(self, is_email_verified: bool):
+        return self.db.query(User).filter(User.is_email_verified == is_email_verified).first

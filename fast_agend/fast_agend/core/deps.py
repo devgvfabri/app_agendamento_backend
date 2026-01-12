@@ -8,14 +8,39 @@ def get_db():
     finally:
         db.close()
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
+from http import HTTPStatus
 from sqlalchemy.orm import Session
 
 from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.services.auth_service import AuthService
 from fast_agend.core.deps import get_db
-
+from fast_agend.security.password import oauth2_scheme, SECRET_KEY, ALGORITHM
+from fast_agend.models import User
+from jose import JWTError, jwt
 
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
     repo = UserRepository(db)
     return AuthService(repo)
+
+def get_current_user(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> User:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str | None = payload.get("sub")
+
+        if not username:
+            raise HTTPException(status_code=401, detail="Token inválido")
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    user = UserRepository(db).get_by_username(username)
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
+
+    return user
+

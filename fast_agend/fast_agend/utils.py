@@ -1,6 +1,18 @@
 import re
 from fast_agend.exceptions.user_exceptions import InvalidPasswordException 
+import random
+import smtplib
+from email.message import EmailMessage
+from dotenv import load_dotenv
+load_dotenv()
+import os
+import smtplib
+from email.message import EmailMessage
 
+SMTP_HOST = os.getenv("SMTP_HOST")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
 def validar_cpf(cpf: str) -> bool:
     cpf = ''.join(filter(str.isdigit, cpf))
@@ -42,3 +54,21 @@ def validate_password(password: str) -> None:
         raise InvalidPasswordException(
             "A senha deve conter pelo menos um caractere especial."
         )
+
+def generate_code():
+        return str(random.randint(100000, 999999))
+
+def send_verification_email(to_email: str, code: str):
+    msg = EmailMessage()
+    msg["Subject"] = "Verificação de e-mail"
+    msg["From"] = SMTP_USER
+    msg["To"] = to_email
+    msg.set_content(f"Seu código de verificação é: {code}")
+    print(SMTP_HOST)
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.send_message(msg)

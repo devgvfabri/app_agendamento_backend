@@ -1,10 +1,8 @@
 from fastapi import HTTPException, status
 from jose import jwt, JWTError
 from datetime import timedelta
-
 from fast_agend.security.password import oauth2_scheme, SECRET_KEY, ALGORITHM, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from fast_agend.repositories.user_repository import UserRepository
-
 
 class AuthService:
     def __init__(self, user_repo: UserRepository):
@@ -18,6 +16,12 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Usuário ou senha inválidos",
                 headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if not user.is_email_verified: 
+            raise HTTPException(
+                status_code=403,
+                detail="Confirme seu e-mail antes de fazer login",
             )
 
         access_token = create_access_token(
