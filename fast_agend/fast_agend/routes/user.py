@@ -5,14 +5,15 @@ from datetime import datetime, timedelta
 from fast_agend.core.deps import get_db
 from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.services.user_service import UserService
-from fast_agend.schemas import UserSchema, UserPublic, UserList, UserCreate, UserResponse, UserUpdateSchema
-from fastapi import Depends
+from fast_agend.schemas import UserSchema, UserPublic, UserList, UserCreate, UserResponse, UserUpdateSchema, ResetPasswordRequest
+from fastapi import Depends, status
 from fast_agend.security.password import oauth2_scheme
 from fast_agend.core.deps import get_auth_service
 from fast_agend.services.auth_service import AuthService
 from fast_agend.utils import send_verification_email, generate_code
 from fast_agend.core.deps import get_current_user
 from fast_agend.models import User, VerificationToken
+from fast_agend.core.deps import get_auth_service
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -139,3 +140,10 @@ def confirm_email_verification(
     db.commit()
 
     return {"message": "E-mail verificado com sucesso"}
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+def reset_password(
+    data: ResetPasswordRequest,
+    auth_service: AuthService = Depends(get_auth_service),  
+):
+    auth_service.reset_password(data.token, data.new_password)
