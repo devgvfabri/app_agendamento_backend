@@ -14,13 +14,9 @@ from fast_agend.utils import send_verification_email, generate_code
 from fast_agend.core.deps import get_current_user
 from fast_agend.models import User, VerificationToken
 from fast_agend.core.deps import get_auth_service
+from fast_agend.core.deps import get_user_service
 
 router = APIRouter(prefix="/users", tags=["Users"])
-
-
-def get_user_service(db: Session = Depends(get_db)) -> UserService:
-    repo = UserRepository(db)
-    return UserService(repo)
 
 
 @router.post("/", status_code=HTTPStatus.CREATED, response_model=UserResponse)
