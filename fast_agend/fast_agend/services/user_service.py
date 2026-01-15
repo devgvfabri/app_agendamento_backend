@@ -1,7 +1,7 @@
 from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.schemas import UserSchema, UserCreate, UserUpdateSchema
 from fast_agend.models import User
-from fast_agend.utils import validar_cpf, cpf_normalize, validate_password
+from fast_agend.utils import validar_cpf, cpf_normalize, validate_password, send_verification_email, generate_code
 from fast_agend.exceptions.user_exceptions import InvalidCPFException, ExistingNumberException, UsernameAlreadyExistsException
 from fast_agend.exceptions.user_exceptions import EmailAlreadyExistsException, CPFAlreadyExistsException, InvalidCPFException
 from fast_agend.security.password import hash_password
@@ -9,12 +9,42 @@ from fastapi import Depends, HTTPException, status
 from jose import JWTError, jwt
 from fast_agend.security.password import SECRET_KEY, ALGORITHM
 from fast_agend.security.password import oauth2_scheme
+from fast_agend.models import VerificationToken
+from datetime import datetime, timedelta
+from fast_agend.repositories.verification_token_repository import  VerificationTokenRepository
+from email.message import EmailMessage
+from dotenv import load_dotenv
+load_dotenv()
+import os
+import smtplib
+from email.message import EmailMessage
+from fast_agend.core.config import settings
+
+SMTP_HOST = os.getenv("SMTP_HOST")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+
 
 class UserService:
-    def __init__(self, repository: UserRepository):
+    def __init__(self, repository: UserRepository, verification_token_repository: VerificationTokenRepository,):
         self.repository = repository
+        self.token_repository = verification_token_repository
 
     def create_user(self, user_data: UserCreate) -> User:
+        # 1️⃣ Verifica se já existe usuário com esse email
+        existing_user = self.repository.get_by_email(user_data.email)
+
+        if existing_user:
+            # 📌 Email já verificado → erro normal
+            if existing_user.is_email_verified:
+                raise EmailAlreadyExistsException()
+
+            # 📌 Email NÃO verificado → reenvia verificação
+            self._resend_email_verification(existing_user)
+            return existing_user
+
+        # 2️⃣ Validações só se o usuário NÃO existir
         validate_password(user_data.password)
 
         cpf = cpf_normalize(user_data.cpf)
@@ -30,18 +60,22 @@ class UserService:
         if self.repository.get_by_cpf(cpf):
             raise CPFAlreadyExistsException()
 
-        if self.repository.get_by_email(user_data.email):
-            raise EmailAlreadyExistsException()
-
+        # 3️⃣ Criação do usuário
         user = User(
             username=user_data.username,
             email=user_data.email,
-            password=hash_password(user_data.password),  
+            password=hash_password(user_data.password),
             cpf=cpf,
             phone=user_data.phone,
+            is_email_verified=False,
         )
 
-        return self.repository.create(user)
+        user = self.repository.create(user)
+        code = generate_code()
+        # 4️⃣ Envia email de verificação
+        send_verification_email(user.email, code)
+
+        return user
 
     def list_users(self) -> list[User]:
         return self.repository.get_all()
@@ -117,3 +151,23 @@ class UserService:
     
     def get_user_by_email(self, email: str) -> User | None:
         return self.repository.get_by_email(email)
+
+    def _resend_email_verification(self, user: User):
+        code = generate_code()
+
+        # remove tokens antigos
+        self.token_repository.delete_by_user_and_type(
+            user_id=user.id,
+            type="email"
+        )
+
+        token = VerificationToken(
+            user_id=user.id,
+            code=code,
+            type="email",
+            expires_at=datetime.utcnow() + timedelta(minutes=15),
+        )
+
+        self.token_repository.create(token)
+
+        send_verification_email(user.email, code)

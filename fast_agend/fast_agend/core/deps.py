@@ -11,7 +11,8 @@ def get_db():
 from fastapi import Depends, HTTPException
 from http import HTTPStatus
 from sqlalchemy.orm import Session
-
+from fast_agend.services.user_service import UserService
+from fast_agend.repositories.verification_token_repository import VerificationTokenRepository
 from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.services.auth_service import AuthService
 from fast_agend.core.deps import get_db
@@ -43,4 +44,10 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Usuário não encontrado")
 
     return user
+
+def get_user_service(db: Session = Depends(get_db)):
+    return UserService(
+        repository=UserRepository(db),
+        verification_token_repository=VerificationTokenRepository(db)
+    )
 
