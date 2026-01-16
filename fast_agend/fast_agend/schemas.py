@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import time
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -68,4 +69,13 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class EstablishmentSchema(BaseModel):
+    id: int
+    name: str
+    address: str
+    phone: str
+    opening_time: time
+    closing_time: time
 
+class EstablishmentList(BaseModel):
+    establishments: list[EstablishmentSchema]
