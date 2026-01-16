@@ -1,8 +1,10 @@
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy import func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fast_agend.core.database import Base
 from sqlalchemy import Time, Numeric, ForeignKey, Date
+from decimal import Decimal
+
 
 
 class User(Base):
@@ -36,8 +38,8 @@ class Establishment(Base):
     name: Mapped[str] = mapped_column(nullable=False)
     address: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=True)
-    opening_time: Mapped[Time] = mapped_column(nullable=True)
-    closing_time: Mapped[Time] = mapped_column(nullable=True)
+    opening_time: Mapped[Time] = mapped_column(Time, nullable=True)
+    closing_time: Mapped[Time] = mapped_column(Time, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
@@ -65,9 +67,9 @@ class Scheduling(Base):
     __tablename__ = "schedulings"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[date] = mapped_column(nullable=False)
-    start_time: Mapped[Time] = mapped_column(nullable=False)
-    end_time: Mapped[Time] = mapped_column(nullable=False)
+    date: Mapped[date] = mapped_column(Date, nullable=False)
+    start_time: Mapped[Time] = mapped_column(Time,nullable=False)
+    end_time: Mapped[Time] = mapped_column(Time,nullable=False)
     status: Mapped[str] = mapped_column(nullable=True)
     id_user_client: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     id_professional: Mapped[int] = mapped_column(ForeignKey("professionals.id"), nullable=False)
@@ -85,9 +87,9 @@ class Availability(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     id_professional: Mapped[int] = mapped_column(ForeignKey("professionals.id"), nullable=False)
-    weekday: Mapped[int] = mapped_column(nullable=False)  # 0 = segunda
-    start_time: Mapped[Time] = mapped_column(nullable=False)
-    end_time: Mapped[Time] = mapped_column(nullable=False)
+    weekday: Mapped[int] = mapped_column(nullable=False)  
+    start_time: Mapped[Time] = mapped_column(Time, nullable=False)
+    end_time: Mapped[Time] = mapped_column(Time, nullable=False)
 
 class Asessment(Base):
     __tablename__ = "asessments"
