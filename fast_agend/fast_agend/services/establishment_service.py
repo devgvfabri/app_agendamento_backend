@@ -1,10 +1,10 @@
-from fast_agend.repositories.establishment_repository import Establishment
-from fast_agend.schemas import EstablishmentSchema
+from fast_agend.repositories.establishment_repository import EstablishmentRepository
+from fast_agend.schemas import EstablishmentSchema, EstablishmentList, EstablishmentUpdateSchema, EstablishmentPublic
 from fast_agend.models import Establishment
 from fastapi import Depends, HTTPException, status
 
 class EstablishmentService:
-    def __init__(self, repository: Establishment):
+    def __init__(self, repository: EstablishmentRepository):
         self.repository = repository
 
     def create_establishment(self, establishment_data: EstablishmentSchema) -> Establishment:
@@ -24,12 +24,18 @@ class EstablishmentService:
     def list_establishments(self) -> list[Establishment]:
         return self.repository.get_all()
 
-    def update_establishment(self, establishment_id: int, establishment_data: EstablishmentSchema) -> Establishment | None:
+    def update_establishment(
+        self, establishment_id: int, establishment_data: EstablishmentUpdateSchema
+    ) -> Establishment | None:
+
         establishment = self.repository.get_by_id(establishment_id)
         if not establishment:
             return None
 
         data = establishment_data.model_dump(exclude_unset=True)
+
+        for field, value in data.items():
+            setattr(establishment, field, value)
 
         return self.repository.update(establishment)
 

@@ -12,8 +12,10 @@ from fastapi import Depends, HTTPException
 from http import HTTPStatus
 from sqlalchemy.orm import Session
 from fast_agend.services.user_service import UserService
+from fast_agend.services.establishment_service import EstablishmentService
 from fast_agend.repositories.verification_token_repository import VerificationTokenRepository
 from fast_agend.repositories.user_repository import UserRepository
+from fast_agend.repositories.establishment_repository import EstablishmentRepository
 from fast_agend.services.auth_service import AuthService
 from fast_agend.core.deps import get_db
 from fast_agend.security.password import oauth2_scheme, SECRET_KEY, ALGORITHM
@@ -49,5 +51,10 @@ def get_user_service(db: Session = Depends(get_db)):
     return UserService(
         repository=UserRepository(db),
         verification_token_repository=VerificationTokenRepository(db)
+    )
+
+def get_establishment_service(db: Session = Depends(get_db)):
+    return EstablishmentService(
+        repository=EstablishmentRepository(db),
     )
 
