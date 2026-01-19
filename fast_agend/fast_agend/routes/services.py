@@ -50,3 +50,21 @@ def delete_service(
         raise HTTPException(HTTPStatus.NOT_FOUND, "Estabelecimento não encontrado")
 
     return deleted
+
+@router.get(
+    "/establishment/{establishment_id}",
+    response_model=list[ServicePublic]
+)
+def list_services_by_establishment(
+    establishment_id: int,
+    db: Session = Depends(get_db),
+):
+    repository = ServiceRepository(db)
+    service = ServicesService(repository)
+
+    services = service.list_services_by_establishment(establishment_id)
+
+    if not services:
+        return []
+
+    return services

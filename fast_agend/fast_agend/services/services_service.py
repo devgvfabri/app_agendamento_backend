@@ -46,3 +46,8 @@ class ServicesService:
 
         self.repository.delete(service)
         return service
+    
+    def list_services_by_establishment(
+        self, establishment_id: int
+    ) -> list[Service]:
+        return self.repository.get_by_establishment(establishment_id)
