@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from datetime import time
+from decimal import Decimal
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -95,3 +96,28 @@ class EstablishmentUpdateSchema(BaseModel):
     phone: Optional[str] = None
     opening_time: Optional[time] = None
     closing_time: Optional[time] = None
+
+class ServiceSchema(BaseModel):
+    name: str
+    description: str
+    duration_minutes: int
+    price: Decimal
+    service_establishment_id: int
+
+class ServicePublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    description: str
+    duration_minutes: int
+    price: Decimal
+
+class ServiceList(BaseModel):
+    services: list[ServicePublic]
+
+class ServiceUpdateSchema(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    duration_minutes: Optional[int] = None
+    price: Optional[Decimal] = None
