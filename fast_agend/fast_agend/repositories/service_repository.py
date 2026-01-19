@@ -26,3 +26,11 @@ class ServiceRepository:
     def delete(self, services: Service) -> None:
         self.db.delete(services)
         self.db.commit()
+
+    def get_by_establishment(self, establishment_id: int) -> list[Service]:
+        return (
+            self.db
+            .query(Service)
+            .filter(Service.service_establishment_id == establishment_id)
+            .all()
+        )
