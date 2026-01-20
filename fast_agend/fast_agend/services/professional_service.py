@@ -45,3 +45,6 @@ class ProfessionalService:
 
         self.repository.delete(professional)
         return professional
+
+    def list_professionals_complete(self):
+        return self.repository.get_with_user_and_services()

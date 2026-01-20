@@ -50,3 +50,9 @@ def delete_professional(
         raise HTTPException(HTTPStatus.NOT_FOUND, "Estabelecimento não encontrado")
 
     return deleted
+
+@router.get("/complete", response_model=list[ProfessionalPublic])
+def list_professionals_complete(
+    service: ProfessionalService = Depends(get_professional_service),
+):
+    return service.list_professionals_complete()

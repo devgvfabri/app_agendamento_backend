@@ -103,6 +103,7 @@ class ServiceSchema(BaseModel):
     duration_minutes: int
     price: Decimal
     service_establishment_id: int
+    professional_id: int
 
 class ServicePublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -129,13 +130,13 @@ class ProfessionalSchema(BaseModel):
     active: bool
 
 class ProfessionalPublic(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
-    id_user: int
-    id_establishment: int
-    specialty: str
-    active: bool
+    specialty: str | None
+    active: bool | None
+    user: UserPublic
+    services: list[ServicePublic]
+
+    model_config = ConfigDict(from_attributes=True)
 
 class ProfessionalList(BaseModel):
     professionals: list[ProfessionalPublic]
