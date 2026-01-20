@@ -18,6 +18,7 @@ class User(Base):
     phone: Mapped[str] = mapped_column(unique=True, nullable=False)
     is_email_verified: Mapped[bool] = mapped_column(default=False)
     is_phone_verified: Mapped[bool] = mapped_column(default=False)
+    professionals = relationship("Professional", back_populates="user")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
@@ -52,16 +53,19 @@ class Service(Base):
     duration_minutes: Mapped[int] = mapped_column(nullable=False)
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     service_establishment_id: Mapped[int] = mapped_column(ForeignKey("establishments.id"), nullable=False)
-
+    professional_id: Mapped[int] = mapped_column(ForeignKey("professionals.id"), nullable=False)
+    professional = relationship("Professional", back_populates="services")
 
 class Professional(Base):
     __tablename__ = "professionals"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     id_user: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    user = relationship("User", back_populates="professionals")
     id_establishment: Mapped[int] = mapped_column(ForeignKey("establishments.id"), nullable=False)
     specialty: Mapped[str] = mapped_column(nullable=True)
     active: Mapped[bool] = mapped_column(nullable=True)
+    services = relationship("Service", back_populates="professional")
 
 class Scheduling(Base):
     __tablename__ = "schedulings"

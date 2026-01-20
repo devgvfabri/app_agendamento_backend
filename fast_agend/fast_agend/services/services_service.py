@@ -15,6 +15,7 @@ class ServicesService:
             duration_minutes=service_data.duration_minutes,
             price=service_data.price,
             service_establishment_id=service_data.service_establishment_id,
+            professional_id=service_data.professional_id
         )
 
         service = self.repository.create(service)
