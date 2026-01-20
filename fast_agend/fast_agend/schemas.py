@@ -121,3 +121,27 @@ class ServiceUpdateSchema(BaseModel):
     description: Optional[str] = None
     duration_minutes: Optional[int] = None
     price: Optional[Decimal] = None
+
+class ProfessionalSchema(BaseModel):
+    id_user: int
+    id_establishment: int
+    specialty: str
+    active: bool
+
+class ProfessionalPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    id_user: int
+    id_establishment: int
+    specialty: str
+    active: bool
+
+class ProfessionalList(BaseModel):
+    professionals: list[ProfessionalPublic]
+
+class ProfessionalUpdateSchema(BaseModel):
+    specialty: Optional[str] = None
+    active: Optional[bool] = None
+    id_establishment: Optional[int] = None
+
