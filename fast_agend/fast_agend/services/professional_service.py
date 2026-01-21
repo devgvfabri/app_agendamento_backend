@@ -48,3 +48,6 @@ class ProfessionalService:
 
     def list_professionals_complete(self):
         return self.repository.get_with_user_and_services()
+
+    def list_by_establishment(self, establishment_id: int) -> list[Professional]:
+        return self.repository.get_by_establishment(establishment_id)

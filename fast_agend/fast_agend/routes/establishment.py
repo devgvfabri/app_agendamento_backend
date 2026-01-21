@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from fast_agend.core.deps import get_db
 from fast_agend.repositories.establishment_repository import EstablishmentRepository
+from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.services.establishment_service import EstablishmentService, EstablishmentList
-from fast_agend.schemas import EstablishmentSchema, EstablishmentUpdateSchema, EstablishmentPublic
+from fast_agend.services.professional_service import ProfessionalService
+from fast_agend.schemas import EstablishmentSchema, EstablishmentUpdateSchema, EstablishmentPublic, EstablishmentProfessionalsResponse
 from fast_agend.core.deps import get_establishment_service
 
 
@@ -50,3 +52,28 @@ def delete_establishment(
         raise HTTPException(HTTPStatus.NOT_FOUND, "Estabelecimento não encontrado")
 
     return deleted
+
+@router.get(
+    "/{establishment_id}/professionals",
+    response_model=EstablishmentProfessionalsResponse
+)
+def get_professionals_by_establishment(
+    establishment_id: int,
+    db: Session = Depends(get_db),
+):
+    service = ProfessionalService(
+        ProfessionalRepository(db)
+    )
+
+    professionals = service.list_by_establishment(establishment_id)
+
+    if not professionals:
+        raise HTTPException(
+            HTTPStatus.NOT_FOUND,
+            "Nenhum profissional encontrado para este estabelecimento"
+        )
+
+    return {
+        "establishment_id": establishment_id,
+        "professionals": professionals,
+    }

@@ -42,6 +42,7 @@ class Establishment(Base):
     opening_time: Mapped[Time] = mapped_column(Time, nullable=True)
     closing_time: Mapped[Time] = mapped_column(Time, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    professionals = relationship("Professional", back_populates="establishment")
 
 
 class Service(Base):
@@ -66,6 +67,8 @@ class Professional(Base):
     specialty: Mapped[str] = mapped_column(nullable=True)
     active: Mapped[bool] = mapped_column(nullable=True)
     services = relationship("Service", back_populates="professional")
+    establishment = relationship("Establishment", back_populates="professionals")
+
 
 class Scheduling(Base):
     __tablename__ = "schedulings"
