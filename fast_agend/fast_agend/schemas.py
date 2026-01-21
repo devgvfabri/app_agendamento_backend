@@ -150,6 +150,7 @@ class ProfessionalWithServices(BaseModel):
     id: int
     specialty: str | None
     active: bool | None
+    user: UserPublic
     services: list[ServicePublic]
 
     model_config = ConfigDict(from_attributes=True)
