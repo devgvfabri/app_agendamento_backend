@@ -158,3 +158,27 @@ class ProfessionalWithServices(BaseModel):
 class EstablishmentProfessionalsResponse(BaseModel):
     establishment_id: int
     professionals: list[ProfessionalWithServices]
+
+
+class AvailabilitySchema(BaseModel):
+    id_professional: int
+    weekday: int
+    start_time: time
+    end_time: time
+
+class AvailabilityPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    id_professional: int
+    weekday: int
+    start_time: time
+    end_time: time
+
+class AvailabilityList(BaseModel):
+    availabilitys: list[AvailabilityPublic]
+
+class AvailabilityUpdateSchema(BaseModel):
+    weekday: Optional[int] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
