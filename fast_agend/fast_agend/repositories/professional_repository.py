@@ -37,3 +37,13 @@ class ProfessionalRepository:
             )
             .all()
         )
+
+    def get_by_establishment(self, establishment_id: int):
+        return (
+            self.db.query(Professional)
+            .options(joinedload(Professional.services))
+            .filter(Professional.id_establishment == establishment_id)
+            .all()
+        )
+
+    

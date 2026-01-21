@@ -146,3 +146,15 @@ class ProfessionalUpdateSchema(BaseModel):
     active: Optional[bool] = None
     id_establishment: Optional[int] = None
 
+class ProfessionalWithServices(BaseModel):
+    id: int
+    specialty: str | None
+    active: bool | None
+    user: UserPublic
+    services: list[ServicePublic]
+
+    model_config = ConfigDict(from_attributes=True)
+
+class EstablishmentProfessionalsResponse(BaseModel):
+    establishment_id: int
+    professionals: list[ProfessionalWithServices]

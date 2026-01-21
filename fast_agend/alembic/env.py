@@ -42,10 +42,11 @@ def run_migrations_offline() -> None:
     """
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        connection=connection,
         target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        version_table="alembic_version",
+        version_table_schema="public",
+        include_schemas=False,
     )
 
     with context.begin_transaction():
