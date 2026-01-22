@@ -68,7 +68,7 @@ class Professional(Base):
     active: Mapped[bool] = mapped_column(nullable=True)
     services = relationship("Service", back_populates="professional")
     establishment = relationship("Establishment", back_populates="professionals")
-
+    availabilities = relationship("Availability", back_populates="professional", cascade="all, delete-orphan")
 
 class Scheduling(Base):
     __tablename__ = "schedulings"
@@ -97,6 +97,7 @@ class Availability(Base):
     weekday: Mapped[int] = mapped_column(nullable=False)  
     start_time: Mapped[Time] = mapped_column(Time, nullable=False)
     end_time: Mapped[Time] = mapped_column(Time, nullable=False)
+    professional = relationship("Professional", back_populates="availabilities")
 
 class Asessment(Base):
     __tablename__ = "asessments"

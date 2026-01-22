@@ -45,3 +45,21 @@ class AvailabilityService:
 
         self.repository.delete(availability)
         return availability
+    
+    def get_professional_availabilities(
+        self,
+        db,
+        professional_id: int
+    ):
+        availabilities = self.repository.list_by_professional(
+            db=db,
+            professional_id=professional_id
+        )
+
+        if not availabilities:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Nenhuma disponibilidade encontrada para este profissional"
+            )
+
+        return availabilities

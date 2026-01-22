@@ -26,3 +26,6 @@ class AvailabilityRepository:
     def delete(self, avaibilitys: Availability) -> None:
         self.db.delete(avaibilitys)
         self.db.commit()
+
+    def list_by_professional(self, db: Session, professional_id: int) -> list[Availability]:
+        return (db.query(Availability).filter(Availability.id_professional == professional_id).order_by(Availability.weekday,Availability.start_time).all())
