@@ -14,10 +14,10 @@ router = APIRouter(prefix="/availabilitys", tags=["Availability"])
 @router.post("/", status_code=HTTPStatus.CREATED, response_model=AvailabilitySchema)
 def create_availability(
     availability: AvailabilitySchema,
+    db: Session = Depends(get_db),
     service: AvailabilityService = Depends(get_availability_service),
 ):
-    return service.create_availability(availability)
-
+    return service.create_availability(db, availability)
 
 @router.get("/", response_model=AvailabilityList)
 def list_availabilitys(service: AvailabilityService = Depends(get_availability_service)):
@@ -28,12 +28,19 @@ def list_availabilitys(service: AvailabilityService = Depends(get_availability_s
 def update_availability(
     availability_id: int,
     availability: AvailabilityUpdateSchema,
+    db: Session = Depends(get_db),
     service: AvailabilityService = Depends(get_availability_service),
 ):
-    updated = service.update_availability(availability_id, availability)
+    updated = service.update_availability(
+        db,
+        availability_id,
+        availability
+    )
+
     if not updated:
         raise HTTPException(
-            HTTPStatus.NOT_FOUND, "Disponibilidade não encontrada"
+            HTTPStatus.NOT_FOUND,
+            "Disponibilidade não encontrada"
         )
 
     return updated
