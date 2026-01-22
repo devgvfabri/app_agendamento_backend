@@ -50,3 +50,14 @@ def delete_availabilityt(
         raise HTTPException(HTTPStatus.NOT_FOUND, "Disponibilidade não encontrado")
 
     return deleted
+
+@router.get("/{professional_id}/availabilities", response_model=list[AvailabilityPublic])
+def list_professional_availabilities(
+    professional_id: int,
+    db: Session = Depends(get_db),
+    service: AvailabilityService = Depends(get_availability_service)
+):
+    return service.get_professional_availabilities(
+        db=db,
+        professional_id=professional_id
+    )
