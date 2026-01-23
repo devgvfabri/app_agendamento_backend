@@ -11,6 +11,7 @@ from fast_agend.routes.services import router as services_router
 from fast_agend.routes.establishment import router as establishments_router 
 from fast_agend.routes.professional import router as professionals_router
 from fast_agend.routes.availability import router as availability_router
+from fast_agend.routes.scheduling import router as scheduling_router
 from fast_agend.exceptions.user_exceptions import InvalidCPFException, ExistingNumberException, UsernameAlreadyExistsException
 from fast_agend.exceptions.user_exceptions import CPFAlreadyExistsException, EmailAlreadyExistsException, InvalidPasswordException
 from dotenv import load_dotenv
@@ -25,6 +26,7 @@ app.include_router(establishments_router)
 app.include_router(services_router)
 app.include_router(professionals_router)
 app.include_router(availability_router)
+app.include_router(scheduling_router)
 
 @app.exception_handler(InvalidCPFException)
 async def invalid_cpf_exception_handler(

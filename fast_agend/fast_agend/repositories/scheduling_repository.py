@@ -1,0 +1,39 @@
+from sqlalchemy.orm import Session, joinedload
+from fast_agend.models import Scheduling
+
+class SchedulingRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def create(self, scheduling: Scheduling) -> Scheduling:
+        self.db.add(scheduling)
+        self.db.commit()
+        self.db.refresh(scheduling)
+        return scheduling
+
+    def get_all(self) -> list[Scheduling]:
+        return self.db.query(Scheduling).all()
+
+    def get_by_id(self, schedulings_id: int) -> Scheduling | None:
+        return self.db.query(Scheduling).filter(Scheduling.id == schedulings_id).first()
+
+    def update(self, scheduling: Scheduling) -> Scheduling:
+        self.db.add(scheduling)  
+        self.db.commit()
+        self.db.refresh(scheduling)
+        return scheduling
+
+    def delete(self, schedulings: Scheduling) -> None:
+        self.db.delete(schedulings)
+        self.db.commit()
+
+    def list_by_professional(self, professional_id: int):
+        return (
+            self.db.query(Scheduling)
+            .options(
+                joinedload(Scheduling.service),
+                joinedload(Scheduling.user),
+            )
+            .filter(Scheduling.id_professional == professional_id)
+            .all()
+        )

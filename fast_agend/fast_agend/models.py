@@ -19,6 +19,7 @@ class User(Base):
     is_email_verified: Mapped[bool] = mapped_column(default=False)
     is_phone_verified: Mapped[bool] = mapped_column(default=False)
     professionals = relationship("Professional", back_populates="user")
+    schedulings = relationship("Scheduling", back_populates="user")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
@@ -56,6 +57,7 @@ class Service(Base):
     service_establishment_id: Mapped[int] = mapped_column(ForeignKey("establishments.id"), nullable=False)
     professional_id: Mapped[int] = mapped_column(ForeignKey("professionals.id"), nullable=False)
     professional = relationship("Professional", back_populates="services")
+    schedulings = relationship("Scheduling", back_populates="service", cascade="all, delete-orphan")
 
 class Professional(Base):
     __tablename__ = "professionals"
@@ -69,6 +71,7 @@ class Professional(Base):
     services = relationship("Service", back_populates="professional")
     establishment = relationship("Establishment", back_populates="professionals")
     availabilities = relationship("Availability", back_populates="professional", cascade="all, delete-orphan")
+    schedulings = relationship("Scheduling", back_populates="professional")
 
 class Scheduling(Base):
     __tablename__ = "schedulings"
@@ -81,13 +84,11 @@ class Scheduling(Base):
     id_user_client: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     id_professional: Mapped[int] = mapped_column(ForeignKey("professionals.id"), nullable=False)
     id_establishment: Mapped[int] = mapped_column(ForeignKey("establishments.id"), nullable=False)
+    service_id: Mapped[int] = mapped_column(ForeignKey("services.id"),nullable=False)
+    service = relationship("Service", back_populates="schedulings")
+    professional = relationship("Professional", back_populates="schedulings")
+    user = relationship("User", back_populates="schedulings")
     observation: Mapped[str] = mapped_column(nullable=True)
-
-class Service_Scheduling(Base):
-    __tablename__ = "service_schedulings"
-
-    id_scheduling: Mapped[int] = mapped_column(ForeignKey("schedulings.id"), primary_key=True)
-    id_service: Mapped[int] = mapped_column(ForeignKey("services.id"), primary_key=True)
 
 class Availability(Base):
     __tablename__ = "availabilitys"

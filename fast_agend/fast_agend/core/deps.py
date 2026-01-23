@@ -13,11 +13,13 @@ from http import HTTPStatus
 from sqlalchemy.orm import Session
 from fast_agend.services.user_service import UserService
 from fast_agend.services.establishment_service import EstablishmentService
+from fast_agend.services.scheduling_service import SchedulingService
 from fast_agend.services.services_service import ServicesService
 from fast_agend.services.availability_service import AvailabilityService
 from fast_agend.services.professional_service import ProfessionalService
 from fast_agend.repositories.verification_token_repository import VerificationTokenRepository
 from fast_agend.repositories.user_repository import UserRepository
+from fast_agend.repositories.scheduling_repository import SchedulingRepository
 from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.repositories.availability_repository import AvailabilityRepository
 from fast_agend.repositories.service_repository import ServiceRepository
@@ -77,4 +79,9 @@ def get_professional_service(db: Session = Depends(get_db)):
 def get_availability_service(db: Session = Depends(get_db)):
     return AvailabilityService(
         repository=AvailabilityRepository(db),
+    )
+
+def get_scheduling_service(db: Session = Depends(get_db)):
+    return SchedulingService(
+        repository=SchedulingRepository(db),
     )
