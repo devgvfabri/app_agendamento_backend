@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
-from datetime import time
+from datetime import time, date
 from decimal import Decimal
 
 
@@ -182,3 +182,47 @@ class AvailabilityUpdateSchema(BaseModel):
     weekday: Optional[int] = None
     start_time: Optional[time] = None
     end_time: Optional[time] = None
+
+class SchedulingSchema(BaseModel):
+    date: date
+    start_time: time
+    end_time: time
+    status: str
+    id_user_client: int
+    id_professional: int
+    id_establishment: int
+    observation: str
+
+class SchedulingPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    date: date
+    start_time: time
+    end_time: time
+    status: str
+    observation: str
+
+class SchedulingList(BaseModel):
+    schedulings: list[SchedulingPublic]
+
+class SchedulingUpdateSchema(BaseModel):
+    date: Optional[date] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
+    status: Optional[str] = None
+    id_user_client: Optional[int] = None
+    id_professional: Optional[int] = None
+    id_establishment: Optional[int] = None
+    observation: Optional[str] = None
+
+class ProfessionalWithSchedulings(BaseModel):
+    id: int
+    user: UserPublic
+    service: ServicePublic
+
+    model_config = {"from_attributes": True}
+
+class SchedulingProfessionalsResponse(BaseModel):
+    professinal_id: int
+    schedulings: list[ProfessionalWithSchedulings]
