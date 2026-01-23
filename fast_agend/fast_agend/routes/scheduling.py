@@ -53,25 +53,21 @@ def delete_scheduling(
 
 @router.get(
     "/professionals/{professional_id}/schedulings",
-    status_code=HTTPStatus.OK,
+    response_model=SchedulingProfessionalsResponse
 )
 def get_schedulings_by_professional(
     professional_id: int,
-    db: Session = Depends(get_db),
+    service: SchedulingService = Depends(get_scheduling_service),
 ):
-    service = SchedulingService(
-        SchedulingRepository(db)
-    )
-
     schedulings = service.list_by_professional(professional_id)
 
     if not schedulings:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
+            status_code=404,
             detail="Nenhum agendamento encontrado para este profissional"
         )
 
     return {
         "professional_id": professional_id,
-        "schedulings": schedulings,
+        "schedulings": schedulings
     }

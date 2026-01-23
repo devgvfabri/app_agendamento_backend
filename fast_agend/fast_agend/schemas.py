@@ -191,17 +191,21 @@ class SchedulingSchema(BaseModel):
     id_user_client: int
     id_professional: int
     id_establishment: int
+    service_id: int
     observation: str
 
 class SchedulingPublic(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     date: date
     start_time: time
     end_time: time
-    status: str
-    observation: str
+    status: str | None
+    observation: str | None
+
+    service: ServicePublic
+    user: UserPublic
+
+    model_config = {"from_attributes": True}
 
 class SchedulingList(BaseModel):
     schedulings: list[SchedulingPublic]
@@ -216,13 +220,8 @@ class SchedulingUpdateSchema(BaseModel):
     id_establishment: Optional[int] = None
     observation: Optional[str] = None
 
-class ProfessionalWithSchedulings(BaseModel):
-    id: int
-    user: UserPublic
-    service: ServicePublic
 
-    model_config = {"from_attributes": True}
 
 class SchedulingProfessionalsResponse(BaseModel):
-    professinal_id: int
-    schedulings: list[ProfessionalWithSchedulings]
+    professional_id: int
+    schedulings: list[SchedulingPublic]

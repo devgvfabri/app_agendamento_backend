@@ -17,6 +17,7 @@ class SchedulingService:
             id_user_client=scheduling_data.id_user_client,
             id_professional=scheduling_data.id_professional,
             id_establishment=scheduling_data.id_establishment,
+            service_id=scheduling_data.service_id,
             observation=scheduling_data.observation,
         )
 
