@@ -2,12 +2,26 @@ from fast_agend.repositories.scheduling_repository import SchedulingRepository
 from fast_agend.schemas import SchedulingSchema, SchedulingList, SchedulingUpdateSchema, SchedulingPublic
 from fast_agend.models import Scheduling
 from fastapi import Depends, HTTPException, status
+from http import HTTPStatus
 
 class SchedulingService:
     def __init__(self, repository: SchedulingRepository):
         self.repository = repository
 
     def create_scheduling(self, scheduling_data: SchedulingSchema) -> Scheduling:
+
+        has_conflict = self.repository.exists_conflict(
+            professional_id=scheduling_data.id_professional,
+            date=scheduling_data.date,
+            start_time=scheduling_data.start_time,
+            end_time=scheduling_data.end_time,
+        )
+
+        if has_conflict:
+            raise HTTPException(
+                status_code=HTTPStatus.CONFLICT,
+                detail="Horário indisponível para este profissional"
+            )
 
         scheduling = Scheduling(
             date=scheduling_data.date,
@@ -21,9 +35,7 @@ class SchedulingService:
             observation=scheduling_data.observation,
         )
 
-        scheduling = self.repository.create(scheduling)
-
-        return scheduling
+        return self.repository.create(scheduling)
 
     def list_schedulings(self) -> list[Scheduling]:
         return self.repository.get_all()
