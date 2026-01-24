@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session, joinedload
 from fast_agend.models import Scheduling
+from datetime import datetime, timedelta, time, date
+
 
 class SchedulingRepository:
     def __init__(self, db: Session):
@@ -39,14 +41,15 @@ class SchedulingRepository:
         )
 
     def list_by_professional_and_date(
-        self, db, professional_id: int, date
+        self,
+        professional_id: int,
+        target_date: date,
     ):
         return (
-            db.query(Scheduling)
+            self.db.query(Scheduling)
             .filter(
                 Scheduling.id_professional == professional_id,
-                Scheduling.date == date,
-                Scheduling.status != "cancelled"
+                Scheduling.date == target_date
             )
             .all()
         )

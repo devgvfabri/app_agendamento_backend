@@ -1,14 +1,18 @@
 from fast_agend.repositories.availability_repository import AvailabilityRepository
+from fast_agend.repositories.scheduling_repository import SchedulingRepository
 from fast_agend.schemas import AvailabilitySchema, AvailabilityList, AvailabilityUpdateSchema, AvailabilityPublic
 from fast_agend.models import Availability
-from fast_agend.services.slot_service import generate_time_slots
+from fast_agend.services.slot_service import generate_time_slots, generate_slots, has_conflict
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
+from datetime import datetime, timedelta, time, date
+from datetime import date as DateType
 
 class AvailabilityService:
-    def __init__(self, repository: AvailabilityRepository):
+    def __init__(self, repository: AvailabilityRepository, scheduling_repo: SchedulingRepository,):
         self.repository = repository
+        self.scheduling_repo = scheduling_repo
+
 
     def create_availability(
         self,
@@ -111,28 +115,50 @@ class AvailabilityService:
 
         return availabilities
 
-    def get_slots_by_professional(
+    def get_available_slots(
         self,
         professional_id: int,
+        target_date: DateType,
         slot_minutes: int = 30
     ):
-        availabilities = self.repository.list_by_professional(professional_id)
+        weekday = target_date.weekday()
 
-        if not availabilities:
+        availabilities = self.repository.list_by_professional(
+            professional_id
+        )
+
+        day_availabilities = [
+            a for a in availabilities if a.weekday == weekday
+        ]
+
+        if not day_availabilities:
             return []
 
-        response = []
+        schedulings = self.scheduling_repo.list_by_professional_and_date(
+            professional_id,
+            target_date
+        )
 
-        for availability in availabilities:
-            slots = generate_time_slots(
+        free_slots = []
+
+        for availability in day_availabilities:
+            slots = generate_slots(
                 availability.start_time,
                 availability.end_time,
-                slot_minutes
+                slot_minutes,
+                target_date
             )
 
-            response.append({
-                "weekday": availability.weekday,
-                "slots": slots
-            })
+            for slot in slots:
+                if not has_conflict(
+                    slot["start"],
+                    slot["end"],
+                    schedulings
+                ):
+                    free_slots.append(slot["start"].strftime("%H:%M"))
 
-        return response
+        return {
+            "date": target_date,
+            "weekday": weekday,
+            "slots": free_slots
+        }
