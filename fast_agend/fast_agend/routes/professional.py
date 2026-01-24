@@ -8,6 +8,7 @@ from fast_agend.services.professional_service import ProfessionalService, Profes
 from fast_agend.services.availability_service import AvailabilityService
 from fast_agend.schemas import ProfessionalSchema, ProfessionalUpdateSchema, ProfessionalPublic
 from fast_agend.core.deps import get_professional_service, get_availability_service
+from datetime import datetime, timedelta, time, date
 
 
 router = APIRouter(prefix="/professionals", tags=["Professionals"])
@@ -58,9 +59,13 @@ def list_professionals_complete(
 ):
     return service.list_professionals_complete()
 
-@router.get("/professional/{professional_id}/slots",status_code=HTTPStatus.OK)
-def get_available_slots(
+@router.get(
+    "/professional/{professional_id}/slots",
+    status_code=HTTPStatus.OK
+)
+def get_slots(
     professional_id: int,
+    date: date,
     service: AvailabilityService = Depends(get_availability_service),
-    ):
-    return service.get_slots_by_professional(professional_id)
+):
+    return service.get_available_slots(professional_id, date)

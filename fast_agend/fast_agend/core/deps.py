@@ -78,7 +78,8 @@ def get_professional_service(db: Session = Depends(get_db)):
 
 def get_availability_service(db: Session = Depends(get_db)):
     return AvailabilityService(
-        repository=AvailabilityRepository(db),
+        AvailabilityRepository(db),
+        SchedulingRepository(db),
     )
 
 def get_scheduling_service(db: Session = Depends(get_db)):
