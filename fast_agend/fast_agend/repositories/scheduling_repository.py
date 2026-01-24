@@ -53,3 +53,23 @@ class SchedulingRepository:
             )
             .all()
         )
+
+    def exists_conflict(
+        self,
+        professional_id: int,
+        date: date,
+        start_time: time,
+        end_time: time,
+    ) -> bool:
+        return (
+            self.db.query(Scheduling)
+            .filter(
+                Scheduling.id_professional == professional_id,
+                Scheduling.date == date,
+                Scheduling.start_time < end_time,
+                Scheduling.end_time > start_time,
+                Scheduling.status != "cancelled",  # se tiver status
+            )
+            .first()
+            is not None
+        )
