@@ -37,3 +37,16 @@ class SchedulingRepository:
             .filter(Scheduling.id_professional == professional_id)
             .all()
         )
+
+    def list_by_professional_and_date(
+        self, db, professional_id: int, date
+    ):
+        return (
+            db.query(Scheduling)
+            .filter(
+                Scheduling.id_professional == professional_id,
+                Scheduling.date == date,
+                Scheduling.status != "cancelled"
+            )
+            .all()
+        )

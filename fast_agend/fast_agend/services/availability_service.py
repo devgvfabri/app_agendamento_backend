@@ -1,6 +1,7 @@
 from fast_agend.repositories.availability_repository import AvailabilityRepository
 from fast_agend.schemas import AvailabilitySchema, AvailabilityList, AvailabilityUpdateSchema, AvailabilityPublic
 from fast_agend.models import Availability
+from fast_agend.services.slot_service import generate_time_slots
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -109,3 +110,29 @@ class AvailabilityService:
             )
 
         return availabilities
+
+    def get_slots_by_professional(
+        self,
+        professional_id: int,
+        slot_minutes: int = 30
+    ):
+        availabilities = self.repository.list_by_professional(professional_id)
+
+        if not availabilities:
+            return []
+
+        response = []
+
+        for availability in availabilities:
+            slots = generate_time_slots(
+                availability.start_time,
+                availability.end_time,
+                slot_minutes
+            )
+
+            response.append({
+                "weekday": availability.weekday,
+                "slots": slots
+            })
+
+        return response

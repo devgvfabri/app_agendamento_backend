@@ -80,3 +80,10 @@ class AvailabilityRepository:
             )
             .all()
         )
+
+    def list_by_professional(self, professional_id: int) -> list[Availability]:
+        return (
+            self.db.query(Availability)
+            .filter(Availability.id_professional == professional_id)
+            .all()
+        )
