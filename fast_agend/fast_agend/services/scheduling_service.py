@@ -1,20 +1,38 @@
 from fast_agend.repositories.scheduling_repository import SchedulingRepository
-from fast_agend.schemas import SchedulingSchema, SchedulingList, SchedulingUpdateSchema, SchedulingPublic
+from fast_agend.repositories.service_repository import ServiceRepository
+from fast_agend.schemas import SchedulingSchema, SchedulingList, SchedulingUpdateSchema, SchedulingPublic, SchedulingCreateSchema
 from fast_agend.models import Scheduling
 from fastapi import Depends, HTTPException, status
 from http import HTTPStatus
+from datetime import datetime, timedelta
 
 class SchedulingService:
-    def __init__(self, repository: SchedulingRepository):
+    def __init__(self, repository: SchedulingRepository, service_repo: ServiceRepository ):
         self.repository = repository
+        self.service_repo = service_repo
 
-    def create_scheduling(self, scheduling_data: SchedulingSchema) -> Scheduling:
+    def create_scheduling(self, scheduling_data: SchedulingCreateSchema) -> Scheduling:
+
+        service = self.service_repo.get_by_id(scheduling_data.service_id)
+
+        if not service:
+            raise HTTPException(404, "Serviço não encontrado")
+
+        start_dt = datetime.combine(
+            scheduling_data.date,
+            scheduling_data.start_time
+        )
+
+        end_dt = start_dt + timedelta(minutes=service.duration_minutes)
+
+        end_time = end_dt.time()
+
 
         has_conflict = self.repository.exists_conflict(
             professional_id=scheduling_data.id_professional,
             date=scheduling_data.date,
             start_time=scheduling_data.start_time,
-            end_time=scheduling_data.end_time,
+            end_time=end_time,
         )
 
         if has_conflict:
@@ -26,8 +44,8 @@ class SchedulingService:
         scheduling = Scheduling(
             date=scheduling_data.date,
             start_time=scheduling_data.start_time,
-            end_time=scheduling_data.end_time,
-            status=scheduling_data.status,
+            end_time=end_time,
+            status="Marcado",
             id_user_client=scheduling_data.id_user_client,
             id_professional=scheduling_data.id_professional,
             id_establishment=scheduling_data.id_establishment,

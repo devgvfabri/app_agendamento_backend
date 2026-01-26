@@ -194,6 +194,15 @@ class SchedulingSchema(BaseModel):
     service_id: int
     observation: str
 
+class SchedulingCreateSchema(BaseModel):
+    date: date
+    start_time: time
+    id_user_client: int
+    id_professional: int
+    id_establishment: int
+    service_id: int
+    observation: str | None = None
+    
 class SchedulingPublic(BaseModel):
     id: int
     date: date
