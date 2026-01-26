@@ -37,9 +37,9 @@ class Establishment(Base):
     __tablename__ = "establishments"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(nullable=False)
+    name: Mapped[str] = mapped_column(unique=True, nullable=False)
     address: Mapped[str] = mapped_column(nullable=False)
-    phone: Mapped[str] = mapped_column(nullable=True)
+    phone: Mapped[str] = mapped_column(unique=True, nullable=True)
     opening_time: Mapped[Time] = mapped_column(Time, nullable=True)
     closing_time: Mapped[Time] = mapped_column(Time, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
