@@ -82,7 +82,10 @@ def get_availability_service(db: Session = Depends(get_db)):
         SchedulingRepository(db),
     )
 
-def get_scheduling_service(db: Session = Depends(get_db)):
+def get_scheduling_service(
+    db: Session = Depends(get_db),
+):
     return SchedulingService(
-        repository=SchedulingRepository(db),
+        SchedulingRepository(db),
+        ServiceRepository(db),
     )

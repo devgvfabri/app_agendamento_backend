@@ -5,15 +5,15 @@ from datetime import datetime, timedelta
 from fast_agend.core.deps import get_db
 from fast_agend.repositories.scheduling_repository import SchedulingRepository
 from fast_agend.services.scheduling_service import SchedulingService, SchedulingList
-from fast_agend.schemas import SchedulingSchema, SchedulingUpdateSchema, SchedulingPublic, SchedulingProfessionalsResponse
+from fast_agend.schemas import SchedulingSchema, SchedulingUpdateSchema, SchedulingPublic, SchedulingProfessionalsResponse, SchedulingCreateSchema
 from fast_agend.core.deps import get_scheduling_service
 
 
 router = APIRouter(prefix="/schedulings", tags=["Schedulings"])
 
-@router.post("/", status_code=HTTPStatus.CREATED, response_model=SchedulingSchema)
+@router.post("/", status_code=HTTPStatus.CREATED, response_model=SchedulingCreateSchema)
 def create_scheduling(
-    scheduling: SchedulingSchema,
+    scheduling: SchedulingCreateSchema,
     service: SchedulingService = Depends(get_scheduling_service),
 ):
     return service.create_scheduling(scheduling)
