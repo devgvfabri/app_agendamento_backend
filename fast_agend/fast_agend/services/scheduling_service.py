@@ -24,6 +24,7 @@ class SchedulingService:
         )
 
         end_dt = start_dt + timedelta(minutes=service.duration_minutes)
+        end_dt -= timedelta(seconds=1)
 
         end_time = end_dt.time()
 

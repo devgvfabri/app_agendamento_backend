@@ -16,23 +16,21 @@ def generate_time_slots(
 
     return slots
 
-def generate_slots(
-    start: time,
-    end: time,
-    slot_minutes: int,
-    base_date: date
-):
+def generate_slots(start_time, end_time, slot_minutes, date):
     slots = []
 
-    current = datetime.combine(base_date, start)
-    end_dt = datetime.combine(base_date, end)
+    current = datetime.combine(date, start_time)
+    end_dt = datetime.combine(date, end_time)
 
     while current + timedelta(minutes=slot_minutes) <= end_dt:
+        slot_end = current + timedelta(minutes=slot_minutes)
+
         slots.append({
             "start": current,
-            "end": current + timedelta(minutes=slot_minutes)
+            "end": slot_end
         })
-        current += timedelta(minutes=slot_minutes)
+
+        current = slot_end
 
     return slots
 
@@ -45,3 +43,6 @@ def has_conflict(slot_start, slot_end, schedulings):
             return True
 
     return False
+
+def to_datetime(date, t):
+    return datetime.combine(date, t)
