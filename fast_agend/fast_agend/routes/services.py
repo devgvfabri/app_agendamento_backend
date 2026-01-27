@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from fast_agend.core.deps import get_db
 from fast_agend.repositories.service_repository import ServiceRepository
+from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.services.services_service import ServicesService, ServiceList
 from fast_agend.schemas import ServiceSchema, ServiceUpdateSchema, ServicePublic
 from fast_agend.core.deps import get_service
@@ -60,7 +61,8 @@ def list_services_by_establishment(
     db: Session = Depends(get_db),
 ):
     repository = ServiceRepository(db)
-    service = ServicesService(repository)
+    professional_repo = ProfessionalRepository(db)
+    service = ServicesService(repository, professional_repo)
 
     services = service.list_services_by_establishment(establishment_id)
 

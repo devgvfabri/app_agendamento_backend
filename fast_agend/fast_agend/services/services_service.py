@@ -1,13 +1,30 @@
 from fast_agend.repositories.service_repository import ServiceRepository
+from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.schemas import ServiceSchema, ServiceList, ServiceUpdateSchema, ServicePublic
 from fast_agend.models import Service
 from fastapi import Depends, HTTPException, status
 
 class ServicesService:
-    def __init__(self, repository: ServiceRepository):
+    def __init__(self, repository: ServiceRepository, professional_repo: ProfessionalRepository):
         self.repository = repository
+        self.professional_repo = professional_repo
 
     def create_service(self, service_data: ServiceSchema) -> Service:
+        professional = self.professional_repo.get_by_id(
+            service_data.professional_id
+        )
+
+        if not professional:
+            raise HTTPException(
+                status_code=404,
+                detail="Profissional não encontrado"
+            )
+
+        if professional.id_establishment != service_data.service_establishment_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Profissional não pertence a este estabelecimento"
+            )
 
         service = Service(
             name=service_data.name,
@@ -15,12 +32,10 @@ class ServicesService:
             duration_minutes=service_data.duration_minutes,
             price=service_data.price,
             service_establishment_id=service_data.service_establishment_id,
-            professional_id=service_data.professional_id
+            professional_id=service_data.professional_id,
         )
 
-        service = self.repository.create(service)
-
-        return service
+        return self.repository.create(service)
 
     def list_services(self) -> list[Service]:
         return self.repository.get_all()

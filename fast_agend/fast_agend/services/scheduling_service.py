@@ -22,17 +22,19 @@ class SchedulingService:
             scheduling_data.date,
             scheduling_data.start_time
         )
+        start_dt += timedelta(minutes=1)
 
         end_dt = start_dt + timedelta(minutes=service.duration_minutes)
-        end_dt -= timedelta(seconds=1)
+        end_dt -= timedelta(minutes=2)
 
+        start_times = start_dt.time()
         end_time = end_dt.time()
 
 
         has_conflict = self.repository.exists_conflict(
             professional_id=scheduling_data.id_professional,
             date=scheduling_data.date,
-            start_time=scheduling_data.start_time,
+            start_time=start_times,
             end_time=end_time,
         )
 
@@ -44,7 +46,7 @@ class SchedulingService:
 
         scheduling = Scheduling(
             date=scheduling_data.date,
-            start_time=scheduling_data.start_time,
+            start_time=start_times,
             end_time=end_time,
             status="Marcado",
             id_user_client=scheduling_data.id_user_client,
