@@ -222,11 +222,7 @@ class SchedulingList(BaseModel):
 class SchedulingUpdateSchema(BaseModel):
     date: Optional[date] = None
     start_time: Optional[time] = None
-    end_time: Optional[time] = None
     status: Optional[str] = None
-    id_user_client: Optional[int] = None
-    id_professional: Optional[int] = None
-    id_establishment: Optional[int] = None
     observation: Optional[str] = None
 
 

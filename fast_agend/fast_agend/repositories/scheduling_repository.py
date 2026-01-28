@@ -60,16 +60,17 @@ class SchedulingRepository:
         date: date,
         start_time: time,
         end_time: time,
+        ignore_scheduling_id: int | None = None,
     ) -> bool:
-        return (
-            self.db.query(Scheduling)
-            .filter(
-                Scheduling.id_professional == professional_id,
-                Scheduling.date == date,
-                Scheduling.start_time < end_time,
-                Scheduling.end_time > start_time,
-                Scheduling.status != "cancelled",  # se tiver status
-            )
-            .first()
-            is not None
+
+        query = self.db.query(Scheduling).filter(
+            Scheduling.id_professional == professional_id,
+            Scheduling.date == date,
+            Scheduling.start_time < end_time,
+            Scheduling.end_time > start_time,
         )
+
+        if ignore_scheduling_id:
+            query = query.filter(Scheduling.id != ignore_scheduling_id)
+
+        return self.db.query(query.exists()).scalar()

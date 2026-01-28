@@ -46,3 +46,6 @@ def has_conflict(slot_start, slot_end, schedulings):
 
 def to_datetime(date, t):
     return datetime.combine(date, t)
+
+def normalize_time(t: time) -> time:
+    return t.replace(tzinfo=None)
