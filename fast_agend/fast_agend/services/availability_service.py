@@ -103,7 +103,6 @@ class AvailabilityService:
         professional_id: int
     ):
         availabilities = self.repository.list_by_professional(
-            db=db,
             professional_id=professional_id
         )
 
