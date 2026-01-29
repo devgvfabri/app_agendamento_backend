@@ -1,18 +1,34 @@
 from fast_agend.repositories.scheduling_repository import SchedulingRepository
+from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.repositories.service_repository import ServiceRepository
 from fast_agend.repositories.availability_repository import AvailabilityRepository
-from fast_agend.schemas import SchedulingSchema, SchedulingList, SchedulingUpdateSchema, SchedulingPublic, SchedulingCreateSchema
-from fast_agend.models import Scheduling
+from fast_agend.schemas import SchedulingSchema, SchedulingList, SchedulingUpdateSchema, SchedulingPublic, SchedulingCreateSchema, SchedulingStatus
+from fast_agend.models import Scheduling, User
 from fast_agend.services.slot_service import normalize_time
 from fastapi import Depends, HTTPException, status
 from http import HTTPStatus
 from datetime import datetime, timedelta, date
+from datetime import date as DateType
+
+ALLOWED_TRANSITIONS = {
+    SchedulingStatus.PENDING: {
+        SchedulingStatus.CONFIRMED,
+        SchedulingStatus.CANCELLED,
+    },
+    SchedulingStatus.CONFIRMED: {
+        SchedulingStatus.CANCELLED,
+        SchedulingStatus.FINISHED,
+    },
+    SchedulingStatus.FINISHED: set(),
+    SchedulingStatus.CANCELLED: set(),
+}
 
 class SchedulingService:
-    def __init__(self, repository: SchedulingRepository, service_repo: ServiceRepository, availability_repo: AvailabilityRepository ):
+    def __init__(self, repository: SchedulingRepository, service_repo: ServiceRepository, availability_repo: AvailabilityRepository, professional_repo: ProfessionalRepository ):
         self.repository = repository
         self.service_repo = service_repo
         self.availability_repo = availability_repo
+        self.professional_repo = professional_repo
 
     def create_scheduling(self, scheduling_data: SchedulingCreateSchema) -> Scheduling:
 
@@ -85,7 +101,7 @@ class SchedulingService:
             date=scheduling_data.date,
             start_time=start_times,
             end_time=end_time,
-            status="Marcado",
+            status=SchedulingStatus.PENDING,
             id_user_client=scheduling_data.id_user_client,
             id_professional=scheduling_data.id_professional,
             id_establishment=scheduling_data.id_establishment,
@@ -106,20 +122,42 @@ class SchedulingService:
 
         scheduling = self.repository.get_by_id(scheduling_id)
 
-        if data.date < date.today():
+        if scheduling.status in {
+            SchedulingStatus.CANCELLED,
+            SchedulingStatus.FINISHED,
+        }:
             raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail="Agendamento não pode ser no passado"
+                HTTPStatus.BAD_REQUEST,
+                "Agendamento cancelado ou finalizado não pode ser alterado"
             )
+
+        schedule_date = scheduling_data.date
+
+        if scheduling_data.date is not None:
+            if scheduling_data.date < DateType.today():
+                raise HTTPException(
+                    status_code=HTTPStatus.BAD_REQUEST,
+                    detail="Agendamento não pode ser no passado"
+                )
 
         if not scheduling:
             return None
 
-        if scheduling_data.status is not None:
-            scheduling.status = scheduling_data.status
-
         if scheduling_data.observation is not None:
             scheduling.observation = scheduling_data.observation
+
+        current = scheduling.status
+        new = SchedulingStatus.PENDING
+
+        if scheduling_data.status is not None:
+            current = scheduling.status
+            new = scheduling_data.status
+
+            if new not in ALLOWED_TRANSITIONS[current]:
+                raise HTTPException(
+                    HTTPStatus.BAD_REQUEST,
+                    f"Transição inválida: {current} → {new}"
+                )
 
         if (
             scheduling_data.date is None
@@ -182,6 +220,8 @@ class SchedulingService:
                 HTTPStatus.CONFLICT,
                 "Horário indisponível para este profissional"
             )
+        
+        scheduling.status = SchedulingStatus.PENDING
 
         scheduling.date = date
         scheduling.start_time = start_times
@@ -199,3 +239,48 @@ class SchedulingService:
 
     def list_by_professional(self, professional_id: int):
         return self.repository.list_by_professional(professional_id)
+
+    def confirm(self, scheduling_id: int, user: User):
+        scheduling = self.repository.get_by_id(scheduling_id)
+        professional = self.professional_repo.get_by_user_id(user.id)
+
+        if not scheduling:
+            raise HTTPException(404, "Agendamento não encontrado")
+
+        if not professional:
+            raise HTTPException(403, "Usuário não é um profissional")
+
+        if scheduling.id_professional != professional.id:
+            raise HTTPException(403, "Você não pode confirmar este agendamento")
+
+        if scheduling.status != SchedulingStatus.PENDING:
+            raise HTTPException(
+                400,
+                "Somente agendamentos pendentes podem ser confirmados"
+            )
+
+        scheduling.status = SchedulingStatus.CONFIRMED
+        return self.repository.update(scheduling)
+
+    def cancel(self, scheduling_id: int, user: User):
+        scheduling = self.repository.get_by_id(scheduling_id)
+        professional = self.professional_repo.get_by_user_id(user.id)
+
+
+        if scheduling.status in [
+            SchedulingStatus.CANCELLED,
+            SchedulingStatus.FINISHED
+        ]:
+            raise HTTPException(400, "Agendamento não pode ser cancelado")
+
+        if user.id == scheduling.id_user_client:
+            pass
+
+        elif professional and professional.id == scheduling.id_professional:
+            pass
+
+        else:
+            raise HTTPException(403, "Você não pode cancelar este agendamento")
+
+        scheduling.status = SchedulingStatus.CANCELLED
+        return self.repository.update(scheduling)

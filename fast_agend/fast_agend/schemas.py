@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import time, date
 from decimal import Decimal
 from datetime import date as DateType
+from enum import Enum
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
@@ -194,9 +195,16 @@ class SchedulingSchema(BaseModel):
     service_id: int
     observation: str
 
+class SchedulingStatus(str, Enum):
+    PENDING = "PENDING"
+    CONFIRMED = "CONFIRMED"
+    CANCELLED = "CANCELLED"
+    FINISHED = "FINISHED"
+
 class SchedulingCreateSchema(BaseModel):
     date: date
     start_time: time
+    status: SchedulingStatus = SchedulingStatus.PENDING
     id_user_client: int
     id_professional: int
     id_establishment: int
@@ -222,10 +230,8 @@ class SchedulingList(BaseModel):
 class SchedulingUpdateSchema(BaseModel):
     date: Optional[DateType] = None
     start_time: Optional[time] = None
-    status: Optional[str] = None
+    status: Optional[SchedulingStatus] = None
     observation: Optional[str] = None
-
-
 
 class SchedulingProfessionalsResponse(BaseModel):
     professional_id: int
