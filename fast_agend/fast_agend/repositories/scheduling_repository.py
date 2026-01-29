@@ -1,7 +1,13 @@
 from sqlalchemy.orm import Session, joinedload
 from fast_agend.models import Scheduling
 from datetime import datetime, timedelta, time, date
+from fast_agend.schemas import  SchedulingStatus
 
+
+BLOCKING_STATUSES = [
+    SchedulingStatus.PENDING,
+    SchedulingStatus.CONFIRMED,
+]
 
 class SchedulingRepository:
     def __init__(self, db: Session):
@@ -68,9 +74,10 @@ class SchedulingRepository:
             Scheduling.date == date,
             Scheduling.start_time < end_time,
             Scheduling.end_time > start_time,
+            Scheduling.status.in_(BLOCKING_STATUSES),
         )
 
-        if ignore_scheduling_id:
+        if ignore_scheduling_id is not None:
             query = query.filter(Scheduling.id != ignore_scheduling_id)
 
         return self.db.query(query.exists()).scalar()

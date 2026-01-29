@@ -2,14 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from http import HTTPStatus
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-from fast_agend.core.deps import get_db
+from fast_agend.core.deps import get_db, get_current_user, get_scheduling_service
 from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.services.professional_service import ProfessionalService, ProfessionalList
 from fast_agend.services.availability_service import AvailabilityService
 from fast_agend.schemas import ProfessionalSchema, ProfessionalUpdateSchema, ProfessionalPublic
 from fast_agend.core.deps import get_professional_service, get_availability_service
 from datetime import datetime, timedelta, time, date
-
+from fast_agend.services.scheduling_service import SchedulingService
+from fast_agend.models import User
 
 router = APIRouter(prefix="/professionals", tags=["Professionals"])
 
@@ -69,3 +70,11 @@ def get_slots(
     service: AvailabilityService = Depends(get_availability_service),
 ):
     return service.get_available_slots(professional_id, date)
+
+@router.patch("/{scheduling_id}/confirm")
+def confirm_scheduling(
+    scheduling_id: int,
+    service: SchedulingService = Depends(get_scheduling_service),
+    current_user: User = Depends(get_current_user),
+):
+    return service.confirm(scheduling_id, current_user)

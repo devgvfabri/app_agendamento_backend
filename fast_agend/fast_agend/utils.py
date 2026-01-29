@@ -72,3 +72,4 @@ def send_verification_email(to_email: str, code: str):
         server.ehlo()
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)
+

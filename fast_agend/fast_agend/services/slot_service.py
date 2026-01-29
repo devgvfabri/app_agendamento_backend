@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, time, date
+from fast_agend.schemas import SchedulingStatus
 
 def generate_time_slots(
     start: time,
@@ -36,6 +37,12 @@ def generate_slots(start_time, end_time, slot_minutes, date):
 
 def has_conflict(slot_start, slot_end, schedulings):
     for sched in schedulings:
+        if sched.status in [
+            SchedulingStatus.CANCELLED,
+            SchedulingStatus.FINISHED
+        ]:
+            continue
+
         sched_start = datetime.combine(sched.date, sched.start_time)
         sched_end = datetime.combine(sched.date, sched.end_time)
 

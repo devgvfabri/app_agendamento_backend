@@ -90,4 +90,5 @@ def get_scheduling_service(
         SchedulingRepository(db),
         ServiceRepository(db),
         AvailabilityRepository(db),
+        ProfessionalRepository(db),
     )

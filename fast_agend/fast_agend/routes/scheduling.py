@@ -6,8 +6,8 @@ from fast_agend.core.deps import get_db
 from fast_agend.repositories.scheduling_repository import SchedulingRepository
 from fast_agend.services.scheduling_service import SchedulingService, SchedulingList
 from fast_agend.schemas import SchedulingSchema, SchedulingUpdateSchema, SchedulingPublic, SchedulingProfessionalsResponse, SchedulingCreateSchema
-from fast_agend.core.deps import get_scheduling_service
-
+from fast_agend.core.deps import get_scheduling_service, get_current_user
+from fast_agend.models import User
 
 router = APIRouter(prefix="/schedulings", tags=["Schedulings"])
 
@@ -71,3 +71,11 @@ def get_schedulings_by_professional(
         "professional_id": professional_id,
         "schedulings": schedulings
     }
+
+@router.patch("/{scheduling_id}/confirm")
+def cancel_scheduling(
+    scheduling_id: int,
+    service: SchedulingService = Depends(get_scheduling_service),
+    current_user: User = Depends(get_current_user),
+):
+    return service.cancel(scheduling_id, current_user)

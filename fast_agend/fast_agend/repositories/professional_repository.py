@@ -46,4 +46,12 @@ class ProfessionalRepository:
             .all()
         )
 
+    def get_by_user_id(self, user_id: int) -> Professional | None:
+        return (
+            self.db
+            .query(Professional)
+            .filter(Professional.id_user == user_id)
+            .first()
+        )
+
     
