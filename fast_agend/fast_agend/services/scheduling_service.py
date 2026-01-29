@@ -6,7 +6,7 @@ from fast_agend.models import Scheduling
 from fast_agend.services.slot_service import normalize_time
 from fastapi import Depends, HTTPException, status
 from http import HTTPStatus
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 class SchedulingService:
     def __init__(self, repository: SchedulingRepository, service_repo: ServiceRepository, availability_repo: AvailabilityRepository ):
@@ -36,6 +36,12 @@ class SchedulingService:
 
         if not service:
             raise HTTPException(404, "Serviço não encontrado")
+
+        if scheduling_data.date < date.today():
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail="Não é possível realizar o agendamento em dias já ocorridos."
+            )
 
         start_dt = datetime.combine(
             scheduling_data.date,
@@ -99,24 +105,28 @@ class SchedulingService:
     ) -> Scheduling | None:
 
         scheduling = self.repository.get_by_id(scheduling_id)
+
+        if data.date < date.today():
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail="Agendamento não pode ser no passado"
+            )
+
         if not scheduling:
             return None
 
-        # 1️⃣ Atualizações simples
         if scheduling_data.status is not None:
             scheduling.status = scheduling_data.status
 
         if scheduling_data.observation is not None:
             scheduling.observation = scheduling_data.observation
 
-        # 2️⃣ Se NÃO alterou data nem horário, pode salvar direto
         if (
             scheduling_data.date is None
             and scheduling_data.start_time is None
         ):
             return self.repository.update(scheduling)
 
-        # 3️⃣ Resolver valores finais
         date = scheduling_data.date or scheduling.date
         start_time = scheduling_data.start_time or scheduling.start_time
 
@@ -124,12 +134,13 @@ class SchedulingService:
         if not service:
             raise HTTPException(404, "Serviço não encontrado")
 
-        # 4️⃣ Calcular end_time
         start_dt = datetime.combine(date, start_time)
+        start_dt += timedelta(minutes=1)
         end_dt = start_dt + timedelta(minutes=service.duration_minutes)
+        end_dt -= timedelta(minutes=2)
+        start_times = start_dt.time()
         end_time = end_dt.time()
 
-        # 5️⃣ Validar availability
         weekday = date.weekday()
 
         availabilities = self.availability_repo.list_by_professional(
@@ -158,11 +169,10 @@ class SchedulingService:
                 "Horário fora da disponibilidade do profissional"
             )
 
-        # 6️⃣ Verificar conflito ignorando ele mesmo
         has_conflict = self.repository.exists_conflict(
             professional_id=scheduling.id_professional,
             date=date,
-            start_time=start_time,
+            start_time=start_times,
             end_time=end_time,
             ignore_scheduling_id=scheduling.id
         )
@@ -173,9 +183,8 @@ class SchedulingService:
                 "Horário indisponível para este profissional"
             )
 
-        # 7️⃣ Aplicar mudanças finais
         scheduling.date = date
-        scheduling.start_time = start_time
+        scheduling.start_time = start_times
         scheduling.end_time = end_time
 
         return self.repository.update(scheduling)

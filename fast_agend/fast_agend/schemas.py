@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from datetime import time, date
 from decimal import Decimal
-
+from datetime import date as DateType
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
@@ -220,7 +220,7 @@ class SchedulingList(BaseModel):
     schedulings: list[SchedulingPublic]
 
 class SchedulingUpdateSchema(BaseModel):
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     start_time: Optional[time] = None
     status: Optional[str] = None
     observation: Optional[str] = None
