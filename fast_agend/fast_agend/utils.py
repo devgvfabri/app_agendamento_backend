@@ -8,6 +8,7 @@ load_dotenv()
 import os
 import smtplib
 from email.message import EmailMessage
+from datetime import time
 
 SMTP_HOST = os.getenv("SMTP_HOST")
 SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
@@ -73,3 +74,5 @@ def send_verification_email(to_email: str, code: str):
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)
 
+def normalize_time(t: time):
+    return t.replace(tzinfo=None) if t.tzinfo else t

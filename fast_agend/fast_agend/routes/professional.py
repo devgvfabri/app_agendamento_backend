@@ -18,8 +18,9 @@ router = APIRouter(prefix="/professionals", tags=["Professionals"])
 def create_professional(
     professional: ProfessionalSchema,
     service: ProfessionalService = Depends(get_professional_service),
+    current_user: User = Depends(get_current_user),
 ):
-    return service.create_professional(professional)
+    return service.create_professional(professional, current_user)
 
 
 @router.get("/", response_model=ProfessionalList)
@@ -32,8 +33,9 @@ def update_professional(
     professional_id: int,
     professional: ProfessionalUpdateSchema,
     service: ProfessionalService = Depends(get_professional_service),
+    current_user: User = Depends(get_current_user),
 ):
-    updated = service.update_professional(professional_id, professional)
+    updated = service.update_professional(professional_id, professional, current_user)
     if not updated:
         raise HTTPException(
             HTTPStatus.NOT_FOUND, "Estabelecimento não encontrado"
@@ -46,9 +48,10 @@ def update_professional(
 def delete_professional(
     professional_id: int,
     service: ProfessionalService = Depends(get_professional_service),
+    current_user: User = Depends(get_current_user),
 ):
 
-    deleted = service.delete_professional(professional_id)
+    deleted = service.delete_professional(professional_id, current_user)
     if not deleted:
         raise HTTPException(HTTPStatus.NOT_FOUND, "Estabelecimento não encontrado")
 
@@ -60,10 +63,7 @@ def list_professionals_complete(
 ):
     return service.list_professionals_complete()
 
-@router.get(
-    "/professional/{professional_id}/slots",
-    status_code=HTTPStatus.OK
-)
+@router.get("/professional/{professional_id}/slots", status_code=HTTPStatus.OK)
 def get_slots(
     professional_id: int,
     date: date,

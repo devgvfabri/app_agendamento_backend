@@ -15,8 +15,9 @@ router = APIRouter(prefix="/schedulings", tags=["Schedulings"])
 def create_scheduling(
     scheduling: SchedulingCreateSchema,
     service: SchedulingService = Depends(get_scheduling_service),
+    current_user: User = Depends(get_current_user),
 ):
-    return service.create_scheduling(scheduling)
+    return service.create_scheduling(scheduling, current_user)
 
 
 @router.get("/", response_model=SchedulingList)
@@ -29,8 +30,9 @@ def update_scheduling(
     scheduling_id: int,
     scheduling: SchedulingUpdateSchema,
     service: SchedulingService = Depends(get_scheduling_service),
+    current_user: User = Depends(get_current_user),
 ):
-    updated = service.update_scheduling(scheduling_id, scheduling)
+    updated = service.update_scheduling(scheduling_id, scheduling, current_user)
     if not updated:
         raise HTTPException(
             HTTPStatus.NOT_FOUND, "Agendamento não encontrado"
@@ -43,18 +45,16 @@ def update_scheduling(
 def delete_scheduling(
     scheduling_id: int,
     service: SchedulingService = Depends(get_scheduling_service),
+    current_user: User = Depends(get_current_user),
 ):
 
-    deleted = service.delete_scheduling(scheduling_id)
+    deleted = service.delete_scheduling(scheduling_id, current_user)
     if not deleted:
         raise HTTPException(HTTPStatus.NOT_FOUND, "Agendamento não encontrado")
 
     return deleted
 
-@router.get(
-    "/professionals/{professional_id}/schedulings",
-    response_model=SchedulingProfessionalsResponse
-)
+@router.get("/professionals/{professional_id}/schedulings", response_model=SchedulingProfessionalsResponse)
 def get_schedulings_by_professional(
     professional_id: int,
     service: SchedulingService = Depends(get_scheduling_service),

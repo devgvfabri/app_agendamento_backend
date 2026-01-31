@@ -8,7 +8,8 @@ from fast_agend.repositories.professional_repository import ProfessionalReposito
 from fast_agend.services.establishment_service import EstablishmentService, EstablishmentList
 from fast_agend.services.professional_service import ProfessionalService
 from fast_agend.schemas import EstablishmentSchema, EstablishmentUpdateSchema, EstablishmentPublic, EstablishmentProfessionalsResponse
-from fast_agend.core.deps import get_establishment_service
+from fast_agend.core.deps import get_establishment_service, get_current_user
+from fast_agend.models import User
 
 
 router = APIRouter(prefix="/establishments", tags=["Establishments"])
@@ -17,8 +18,9 @@ router = APIRouter(prefix="/establishments", tags=["Establishments"])
 def create_establishment(
     establishment: EstablishmentSchema,
     service: EstablishmentService = Depends(get_establishment_service),
+    current_user: User = Depends(get_current_user),
 ):
-    return service.create_establishment(establishment)
+    return service.create_establishment(establishment, current_user)
 
 
 @router.get("/", response_model=EstablishmentList)
@@ -31,8 +33,9 @@ def update_establishment(
     establishment_id: int,
     establishment: EstablishmentUpdateSchema,
     service: EstablishmentService = Depends(get_establishment_service),
+    current_user: User = Depends(get_current_user),
 ):
-    updated = service.update_establishment(establishment_id, establishment)
+    updated = service.update_establishment(establishment_id, establishment, current_user)
     if not updated:
         raise HTTPException(
             HTTPStatus.NOT_FOUND, "Estabelecimento não encontrado"
@@ -45,18 +48,16 @@ def update_establishment(
 def delete_establishment(
     establishment_id: int,
     service: EstablishmentService = Depends(get_establishment_service),
+    current_user: User = Depends(get_current_user),
 ):
 
-    deleted = service.delete_establishment(establishment_id)
+    deleted = service.delete_establishment(establishment_id, current_user)
     if not deleted:
         raise HTTPException(HTTPStatus.NOT_FOUND, "Estabelecimento não encontrado")
 
     return deleted
 
-@router.get(
-    "/{establishment_id}/professionals",
-    response_model=EstablishmentProfessionalsResponse
-)
+@router.get("/{establishment_id}/professionals", response_model=EstablishmentProfessionalsResponse)
 def get_professionals_by_establishment(
     establishment_id: int,
     db: Session = Depends(get_db),
