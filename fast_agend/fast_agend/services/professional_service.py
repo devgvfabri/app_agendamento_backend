@@ -1,13 +1,13 @@
 from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.schemas import ProfessionalSchema, ProfessionalUpdateSchema, ProfessionalPublic, ProfessionalList
-from fast_agend.models import Professional
+from fast_agend.models import Professional, User
 from fastapi import Depends, HTTPException, status
 
 class ProfessionalService:
     def __init__(self, repository: ProfessionalRepository):
         self.repository = repository
 
-    def create_professional(self, professional_data: ProfessionalSchema) -> Professional:
+    def create_professional(self, professional_data: ProfessionalSchema, user: User) -> Professional:
 
         professional = Professional(
             id_user=professional_data.id_user,
@@ -24,7 +24,7 @@ class ProfessionalService:
         return self.repository.get_all()
 
     def update_professional(
-        self, professional_id: int, professional_data: ProfessionalUpdateSchema
+        self, professional_id: int, professional_data: ProfessionalUpdateSchema, user: User
     ) -> Professional | None:
 
         professional = self.repository.get_by_id(professional_id)
@@ -38,7 +38,7 @@ class ProfessionalService:
 
         return self.repository.update(professional)
 
-    def delete_professional(self, professional_id: int) -> Professional | None:
+    def delete_professional(self, professional_id: int, user: User) -> Professional | None:
         professional = self.repository.get_by_id(professional_id)
         if not professional:
             return None

@@ -6,7 +6,8 @@ from fast_agend.core.deps import get_db
 from fast_agend.repositories.availability_repository import AvailabilityRepository
 from fast_agend.services.availability_service import AvailabilityService, AvailabilityList
 from fast_agend.schemas import AvailabilitySchema, AvailabilityUpdateSchema, AvailabilityPublic
-from fast_agend.core.deps import get_availability_service
+from fast_agend.core.deps import get_availability_service, get_current_user
+from fast_agend.models import User
 
 
 router = APIRouter(prefix="/availabilitys", tags=["Availability"])
@@ -16,8 +17,9 @@ def create_availability(
     availability: AvailabilitySchema,
     db: Session = Depends(get_db),
     service: AvailabilityService = Depends(get_availability_service),
+    current_user: User = Depends(get_current_user),
 ):
-    return service.create_availability(db, availability)
+    return service.create_availability(db, availability, current_user)
 
 @router.get("/", response_model=AvailabilityList)
 def list_availabilitys(service: AvailabilityService = Depends(get_availability_service)):
@@ -30,11 +32,13 @@ def update_availability(
     availability: AvailabilityUpdateSchema,
     db: Session = Depends(get_db),
     service: AvailabilityService = Depends(get_availability_service),
+    current_user: User = Depends(get_current_user),
 ):
     updated = service.update_availability(
         db,
         availability_id,
-        availability
+        availability,
+        current_user,
     )
 
     if not updated:
@@ -50,9 +54,10 @@ def update_availability(
 def delete_availabilityt(
     availability_id: int,
     service: AvailabilityService = Depends(get_availability_service),
+    current_user: User = Depends(get_current_user),
 ):
 
-    deleted = service.delete_availabilityt(availability_id)
+    deleted = service.delete_availability(availability_id, current_user)
     if not deleted:
         raise HTTPException(HTTPStatus.NOT_FOUND, "Disponibilidade não encontrado")
 

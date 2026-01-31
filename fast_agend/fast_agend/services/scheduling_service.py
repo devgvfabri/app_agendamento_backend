@@ -30,7 +30,7 @@ class SchedulingService:
         self.availability_repo = availability_repo
         self.professional_repo = professional_repo
 
-    def create_scheduling(self, scheduling_data: SchedulingCreateSchema) -> Scheduling:
+    def create_scheduling(self, scheduling_data: SchedulingCreateSchema, user: User) -> Scheduling:
 
         service = self.service_repo.get_by_id(scheduling_data.service_id)
 
@@ -117,7 +117,8 @@ class SchedulingService:
     def update_scheduling(
         self,
         scheduling_id: int,
-        scheduling_data: SchedulingUpdateSchema
+        scheduling_data: SchedulingUpdateSchema,
+        user: User,
     ) -> Scheduling | None:
 
         scheduling = self.repository.get_by_id(scheduling_id)
@@ -229,7 +230,7 @@ class SchedulingService:
 
         return self.repository.update(scheduling)
 
-    def delete_scheduling(self, scheduling_id: int) -> Scheduling | None:
+    def delete_scheduling(self, scheduling_id: int, user: User) -> Scheduling | None:
         scheduling = self.repository.get_by_id(scheduling_id)
         if not scheduling:
             return None

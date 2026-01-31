@@ -1,12 +1,14 @@
 from fast_agend.repositories.availability_repository import AvailabilityRepository
 from fast_agend.repositories.scheduling_repository import SchedulingRepository
 from fast_agend.schemas import AvailabilitySchema, AvailabilityList, AvailabilityUpdateSchema, AvailabilityPublic
-from fast_agend.models import Availability
+from fast_agend.models import Availability, User
 from fast_agend.services.slot_service import generate_time_slots, generate_slots, has_conflict
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, time, date
 from datetime import date as DateType
+from fast_agend.utils import normalize_time
+
 
 class AvailabilityService:
     def __init__(self, repository: AvailabilityRepository, scheduling_repo: SchedulingRepository,):
@@ -17,7 +19,8 @@ class AvailabilityService:
     def create_availability(
         self,
         db: Session,
-        availability_data: AvailabilitySchema
+        availability_data: AvailabilitySchema,
+        user: User
     ) -> Availability:
 
         if availability_data.start_time >= availability_data.end_time:
@@ -52,7 +55,7 @@ class AvailabilityService:
     def list_availabilitys(self) -> list[Availability]:
         return self.repository.get_all()
 
-    def update_availability(self, db: Session, availability_id: int, availability_data: AvailabilityUpdateSchema) -> Availability | None:
+    def update_availability(self, db: Session, availability_id: int, availability_data: AvailabilityUpdateSchema, user: User) -> Availability | None:
         availability = self.repository.get_by_id_db(db, availability_id)
         if not availability:
             return None
@@ -63,11 +66,16 @@ class AvailabilityService:
         end_time = data.get("end_time", availability.end_time)
         weekday = data.get("weekday", availability.weekday)
 
-        if start_time >= end_time:
-            raise HTTPException(
-                status_code=400,
-                detail="start_time deve ser menor que end_time"
-            )
+        start_time = normalize_time(start_time)
+        end_time = normalize_time(end_time)
+
+
+        if start_time is not None:
+            if start_time >= end_time:
+                raise HTTPException(
+                    status_code=400,
+                    detail="start_time deve ser menor que end_time"
+                )
 
         conflicts = self.repository.find_conflicts_excluding_id(
             db=db,
@@ -89,7 +97,7 @@ class AvailabilityService:
 
         return self.repository.update(db, availability)
 
-    def delete_availability(self, availability_id: int) -> Availability | None:
+    def delete_availability(self, availability_id: int, user: User) -> Availability | None:
         availability = self.repository.get_by_id(availability_id)
         if not availability:
             return None

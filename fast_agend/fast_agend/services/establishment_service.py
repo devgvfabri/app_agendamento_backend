@@ -1,6 +1,6 @@
 from fast_agend.repositories.establishment_repository import EstablishmentRepository
 from fast_agend.schemas import EstablishmentSchema, EstablishmentList, EstablishmentUpdateSchema, EstablishmentPublic
-from fast_agend.models import Establishment
+from fast_agend.models import Establishment, User
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from http import HTTPStatus
@@ -9,7 +9,7 @@ class EstablishmentService:
     def __init__(self, repository: EstablishmentRepository):
         self.repository = repository
 
-    def create_establishment(self, establishment_data: EstablishmentSchema) -> Establishment:
+    def create_establishment(self, establishment_data: EstablishmentSchema, user: User) -> Establishment:
         establishment = Establishment(
             name=establishment_data.name,
             address=establishment_data.address,
@@ -31,7 +31,7 @@ class EstablishmentService:
         return self.repository.get_all()
 
     def update_establishment(
-        self, establishment_id: int, establishment_data: EstablishmentUpdateSchema
+        self, establishment_id: int, establishment_data: EstablishmentUpdateSchema, user: User
     ) -> Establishment | None:
 
         establishment = self.repository.get_by_id(establishment_id)
@@ -51,7 +51,7 @@ class EstablishmentService:
                 detail="Já existe um estabelecimento com esse nome ou telefone."
             )
 
-    def delete_establishment(self, establishment_id: int) -> Establishment | None:
+    def delete_establishment(self, establishment_id: int, user: User) -> Establishment | None:
         establishment = self.repository.get_by_id(establishment_id)
         if not establishment:
             return None

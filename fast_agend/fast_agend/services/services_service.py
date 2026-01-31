@@ -1,7 +1,7 @@
 from fast_agend.repositories.service_repository import ServiceRepository
 from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.schemas import ServiceSchema, ServiceList, ServiceUpdateSchema, ServicePublic
-from fast_agend.models import Service
+from fast_agend.models import Service, User
 from fastapi import Depends, HTTPException, status
 
 class ServicesService:
@@ -9,7 +9,7 @@ class ServicesService:
         self.repository = repository
         self.professional_repo = professional_repo
 
-    def create_service(self, service_data: ServiceSchema) -> Service:
+    def create_service(self, service_data: ServiceSchema, user: User) -> Service:
         professional = self.professional_repo.get_by_id(
             service_data.professional_id
         )
@@ -41,7 +41,7 @@ class ServicesService:
         return self.repository.get_all()
 
     def update_service(
-        self, service_id: int, service_data: ServiceUpdateSchema
+        self, service_id: int, service_data: ServiceUpdateSchema, user: User
     ) -> Service | None:
 
         service = self.repository.get_by_id(service_id)
@@ -55,7 +55,7 @@ class ServicesService:
 
         return self.repository.update(service)
 
-    def delete_service(self, service_id: int) -> Service | None:
+    def delete_service(self, service_id: int, user: User) -> Service | None:
         service = self.repository.get_by_id(service_id)
         if not service:
             return None
