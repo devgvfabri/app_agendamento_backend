@@ -285,3 +285,12 @@ class SchedulingService:
 
         scheduling.status = SchedulingStatus.CANCELLED
         return self.repository.update(scheduling)
+
+    def list_by_professional_date(self, professional_id: int, target_date: date):
+        return self.repository.list_by_professional_and_date(professional_id, target_date)
+
+    def list_by_user(self, user_id: int):
+        return self.repository.list_by_user(user_id)
+
+    def list_by_user_date(self, user_id: int, target_date: date):
+        return self.repository.list_by_user_and_date(user_id, target_date)

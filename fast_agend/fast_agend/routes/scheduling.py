@@ -5,9 +5,10 @@ from datetime import datetime, timedelta
 from fast_agend.core.deps import get_db
 from fast_agend.repositories.scheduling_repository import SchedulingRepository
 from fast_agend.services.scheduling_service import SchedulingService, SchedulingList
-from fast_agend.schemas import SchedulingSchema, SchedulingUpdateSchema, SchedulingPublic, SchedulingProfessionalsResponse, SchedulingCreateSchema
+from fast_agend.schemas import SchedulingSchema, SchedulingUpdateSchema, SchedulingPublic, SchedulingProfessionalsResponse, SchedulingCreateSchema, SchedulingUsersResponse
 from fast_agend.core.deps import get_scheduling_service, get_current_user
 from fast_agend.models import User
+from datetime import date
 
 router = APIRouter(prefix="/schedulings", tags=["Schedulings"])
 
@@ -70,6 +71,64 @@ def get_schedulings_by_professional(
     return {
         "professional_id": professional_id,
         "schedulings": schedulings
+    }
+
+@router.get("/professionals/{professional_id}/schedulingsdate", response_model=SchedulingProfessionalsResponse)
+def get_schedulings_by_professional_date(
+    professional_id: int,
+    date: date,
+    service: SchedulingService = Depends(get_scheduling_service),
+):
+    schedulings = service.list_by_professional_date(professional_id, date)
+
+    if not schedulings:
+        raise HTTPException(
+            status_code=404,
+            detail="Nenhum agendamento encontrado para este profissional"
+        )
+
+    return {
+        "professional_id": professional_id,
+        "schedulings": schedulings,
+        "date": date
+    }
+
+@router.get("/users/{user_id}/schedulings", response_model=SchedulingUsersResponse)
+def get_schedulings_by_client(
+    user_id: int,
+    service: SchedulingService = Depends(get_scheduling_service),
+):
+    schedulings = service.list_by_user(user_id)
+
+    if not schedulings:
+        raise HTTPException(
+            status_code=404,
+            detail="Nenhum agendamento encontrado para este cliente"
+        )
+
+    return {
+        "user_id": user_id,
+        "schedulings": schedulings
+    }
+
+@router.get("/users/{user_id}/schedulingsdate", response_model=SchedulingUsersResponse)
+def get_schedulings_by_users_date(
+    user_id: int,
+    date: date,
+    service: SchedulingService = Depends(get_scheduling_service),
+):
+    schedulings = service.list_by_user_date(user_id, date)
+
+    if not schedulings:
+        raise HTTPException(
+            status_code=404,
+            detail="Nenhum agendamento encontrado para este cliente"
+        )
+
+    return {
+        "user_id": user_id,
+        "schedulings": schedulings,
+        "date": date
     }
 
 @router.patch("/{scheduling_id}/confirm")

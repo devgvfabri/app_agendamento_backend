@@ -35,6 +35,31 @@ class SchedulingRepository:
         self.db.delete(schedulings)
         self.db.commit()
 
+    def list_by_user(self, user_id: int):
+        return (
+            self.db.query(Scheduling)
+            .options(
+                joinedload(Scheduling.service),
+                joinedload(Scheduling.user),
+            )
+            .filter(Scheduling.id_user_client == user_id)
+            .all()
+        )
+
+    def list_by_user_and_date(
+        self,
+        user_id: int,
+        target_date: date,
+    ):
+        return (
+            self.db.query(Scheduling)
+            .filter(
+                Scheduling.id_user_client == user_id,
+                Scheduling.date == target_date
+            )
+            .all()
+        )
+
     def list_by_professional(self, professional_id: int):
         return (
             self.db.query(Scheduling)
