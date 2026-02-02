@@ -34,3 +34,11 @@ class ServiceRepository:
             .filter(Service.service_establishment_id == establishment_id)
             .all()
         )
+
+    def get_services_by_professional(self, professional_id: int) -> list[Service]:
+        return(
+            self.db
+            .query(Service)
+            .filter(Service.professional_id == professinals_id)
+            .all()
+        )

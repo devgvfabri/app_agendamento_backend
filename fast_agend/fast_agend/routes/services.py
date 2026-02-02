@@ -74,3 +74,22 @@ def list_services_by_establishment(
         return []
 
     return services
+
+@router.get(
+    "/professional/{professional_id}",
+    response_model=list[ServicePublic]
+)
+def list_services_by_professional(
+    professional_id: int,
+    db: Session = Depends(get_db),
+):
+    repository = ServiceRepository(db)
+    professional_repo = ProfessionalRepository(db)
+    service = ServicesService(repository, professional_repo)
+
+    services = service.list_services_by_establishment(professional_id)
+
+    if not services:
+        return []
+
+    return services

@@ -236,3 +236,7 @@ class SchedulingUpdateSchema(BaseModel):
 class SchedulingProfessionalsResponse(BaseModel):
     professional_id: int
     schedulings: list[SchedulingPublic]
+
+class SchedulingUsersResponse(BaseModel):
+    user_id: int
+    schedulings: list[SchedulingPublic]
