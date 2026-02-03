@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from http import HTTPStatus
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-from fast_agend.core.deps import get_db
+from fast_agend.core.deps import get_db, require_role
 from fast_agend.repositories.service_repository import ServiceRepository
 from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.services.services_service import ServicesService, ServiceList
 from fast_agend.schemas import ServiceSchema, ServiceUpdateSchema, ServicePublic
 from fast_agend.core.deps import get_service, get_current_user
-from fast_agend.models import User
+from fast_agend.models import User, UserRole
 
 
 router = APIRouter(prefix="/services", tags=["Services"])
@@ -18,6 +18,7 @@ def create_service(
     services: ServiceSchema,
     service: ServicesService = Depends(get_service),
     current_user: User = Depends(get_current_user),
+    pro: User = Depends(require_role(UserRole.PROFESSIONAL)),
 ):
     return service.create_service(services, current_user)
 
@@ -33,6 +34,7 @@ def update_service(
     services: ServiceUpdateSchema,
     service: ServicesService = Depends(get_service),
     current_user: User = Depends(get_current_user),
+    pro: User = Depends(require_role(UserRole.PROFESSIONAL)),
 ):
     updated = service.update_service(service_id, services, current_user)
     if not updated:
@@ -48,6 +50,7 @@ def delete_service(
     service_id: int,
     service: ServicesService = Depends(get_service),
     current_user: User = Depends(get_current_user),
+    pro: User = Depends(require_role(UserRole.PROFESSIONAL)),
 ):
 
     deleted = service.delete_service(service_id, current_user)
@@ -87,7 +90,7 @@ def list_services_by_professional(
     professional_repo = ProfessionalRepository(db)
     service = ServicesService(repository, professional_repo)
 
-    services = service.list_services_by_establishment(professional_id)
+    services = service.list_services_by_professional(professional_id)
 
     if not services:
         return []

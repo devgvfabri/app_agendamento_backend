@@ -1,6 +1,6 @@
 from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.schemas import UserSchema, UserCreate, UserUpdateSchema
-from fast_agend.models import User
+from fast_agend.models import User, UserRole
 from fast_agend.utils import validar_cpf, cpf_normalize, validate_password, send_verification_email, generate_code
 from fast_agend.exceptions.user_exceptions import InvalidCPFException, ExistingNumberException, UsernameAlreadyExistsException
 from fast_agend.exceptions.user_exceptions import EmailAlreadyExistsException, CPFAlreadyExistsException, InvalidCPFException
@@ -32,19 +32,15 @@ class UserService:
         self.token_repository = verification_token_repository
 
     def create_user(self, user_data: UserCreate) -> User:
-        # 1️⃣ Verifica se já existe usuário com esse email
         existing_user = self.repository.get_by_email(user_data.email)
 
         if existing_user:
-            # 📌 Email já verificado → erro normal
             if existing_user.is_email_verified:
                 raise EmailAlreadyExistsException()
 
-            # 📌 Email NÃO verificado → reenvia verificação
             self._resend_email_verification(existing_user)
             return existing_user
 
-        # 2️⃣ Validações só se o usuário NÃO existir
         validate_password(user_data.password)
 
         cpf = cpf_normalize(user_data.cpf)
@@ -60,19 +56,18 @@ class UserService:
         if self.repository.get_by_cpf(cpf):
             raise CPFAlreadyExistsException()
 
-        # 3️⃣ Criação do usuário
         user = User(
             username=user_data.username,
             email=user_data.email,
             password=hash_password(user_data.password),
             cpf=cpf,
             phone=user_data.phone,
+            role=UserRole.CLIENT,
             is_email_verified=False,
         )
 
         user = self.repository.create(user)
         code = generate_code()
-        # 4️⃣ Envia email de verificação
         send_verification_email(user.email, code)
 
         return user

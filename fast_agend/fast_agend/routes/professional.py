@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from http import HTTPStatus
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-from fast_agend.core.deps import get_db, get_current_user, get_scheduling_service
+from fast_agend.core.deps import get_db, get_current_user, get_scheduling_service, require_role
 from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.services.professional_service import ProfessionalService, ProfessionalList
 from fast_agend.services.availability_service import AvailabilityService
@@ -10,7 +10,7 @@ from fast_agend.schemas import ProfessionalSchema, ProfessionalUpdateSchema, Pro
 from fast_agend.core.deps import get_professional_service, get_availability_service
 from datetime import datetime, timedelta, time, date
 from fast_agend.services.scheduling_service import SchedulingService
-from fast_agend.models import User
+from fast_agend.models import User, UserRole
 
 router = APIRouter(prefix="/professionals", tags=["Professionals"])
 
@@ -19,6 +19,7 @@ def create_professional(
     professional: ProfessionalSchema,
     service: ProfessionalService = Depends(get_professional_service),
     current_user: User = Depends(get_current_user),
+    admin: User = Depends(require_role(UserRole.ADMIN)),
 ):
     return service.create_professional(professional, current_user)
 
@@ -34,6 +35,7 @@ def update_professional(
     professional: ProfessionalUpdateSchema,
     service: ProfessionalService = Depends(get_professional_service),
     current_user: User = Depends(get_current_user),
+    admin: User = Depends(require_role(UserRole.ADMIN)),
 ):
     updated = service.update_professional(professional_id, professional, current_user)
     if not updated:
@@ -49,6 +51,7 @@ def delete_professional(
     professional_id: int,
     service: ProfessionalService = Depends(get_professional_service),
     current_user: User = Depends(get_current_user),
+    admin: User = Depends(require_role(UserRole.ADMIN)),
 ):
 
     deleted = service.delete_professional(professional_id, current_user)
@@ -76,5 +79,6 @@ def confirm_scheduling(
     scheduling_id: int,
     service: SchedulingService = Depends(get_scheduling_service),
     current_user: User = Depends(get_current_user),
+    pro: User = Depends(require_role(UserRole.PROFESSIONAL)),
 ):
     return service.confirm(scheduling_id, current_user)

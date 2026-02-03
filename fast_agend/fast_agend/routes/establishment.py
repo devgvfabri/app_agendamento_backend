@@ -5,11 +5,12 @@ from datetime import datetime, timedelta
 from fast_agend.core.deps import get_db
 from fast_agend.repositories.establishment_repository import EstablishmentRepository
 from fast_agend.repositories.professional_repository import ProfessionalRepository
+from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.services.establishment_service import EstablishmentService, EstablishmentList
 from fast_agend.services.professional_service import ProfessionalService
 from fast_agend.schemas import EstablishmentSchema, EstablishmentUpdateSchema, EstablishmentPublic, EstablishmentProfessionalsResponse
-from fast_agend.core.deps import get_establishment_service, get_current_user
-from fast_agend.models import User
+from fast_agend.core.deps import get_establishment_service, get_current_user, require_role
+from fast_agend.models import User, UserRole
 
 
 router = APIRouter(prefix="/establishments", tags=["Establishments"])
@@ -19,6 +20,7 @@ def create_establishment(
     establishment: EstablishmentSchema,
     service: EstablishmentService = Depends(get_establishment_service),
     current_user: User = Depends(get_current_user),
+    admin: User = Depends(require_role(UserRole.ADMIN)),
 ):
     return service.create_establishment(establishment, current_user)
 
@@ -34,6 +36,7 @@ def update_establishment(
     establishment: EstablishmentUpdateSchema,
     service: EstablishmentService = Depends(get_establishment_service),
     current_user: User = Depends(get_current_user),
+    admin: User = Depends(require_role(UserRole.ADMIN)),
 ):
     updated = service.update_establishment(establishment_id, establishment, current_user)
     if not updated:
@@ -49,6 +52,7 @@ def delete_establishment(
     establishment_id: int,
     service: EstablishmentService = Depends(get_establishment_service),
     current_user: User = Depends(get_current_user),
+    admin: User = Depends(require_role(UserRole.ADMIN)),
 ):
 
     deleted = service.delete_establishment(establishment_id, current_user)
@@ -63,7 +67,8 @@ def get_professionals_by_establishment(
     db: Session = Depends(get_db),
 ):
     service = ProfessionalService(
-        ProfessionalRepository(db)
+        ProfessionalRepository(db),
+        UserRepository(db)
     )
 
     professionals = service.list_by_establishment(establishment_id)

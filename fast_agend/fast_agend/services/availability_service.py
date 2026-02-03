@@ -1,5 +1,6 @@
 from fast_agend.repositories.availability_repository import AvailabilityRepository
 from fast_agend.repositories.scheduling_repository import SchedulingRepository
+from fast_agend.repositories.professional_repository import ProfessionalRepository
 from fast_agend.schemas import AvailabilitySchema, AvailabilityList, AvailabilityUpdateSchema, AvailabilityPublic
 from fast_agend.models import Availability, User
 from fast_agend.services.slot_service import generate_time_slots, generate_slots, has_conflict
@@ -11,10 +12,10 @@ from fast_agend.utils import normalize_time
 
 
 class AvailabilityService:
-    def __init__(self, repository: AvailabilityRepository, scheduling_repo: SchedulingRepository,):
+    def __init__(self, repository: AvailabilityRepository, scheduling_repo: SchedulingRepository, professional_repo: ProfessionalRepository):
         self.repository = repository
         self.scheduling_repo = scheduling_repo
-
+        self.professional_repo = professional_repo
 
     def create_availability(
         self,
@@ -22,6 +23,16 @@ class AvailabilityService:
         availability_data: AvailabilitySchema,
         user: User
     ) -> Availability:
+
+        professional = self.professional_repo.get_by_id(
+            availability_data.id_professional
+        )
+
+        if not professional:
+            raise HTTPException(
+                status_code=404,
+                detail="Profissional não encontrado"
+            )
 
         if availability_data.start_time >= availability_data.end_time:
             raise HTTPException(
