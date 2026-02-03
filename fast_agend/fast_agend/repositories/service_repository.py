@@ -39,6 +39,6 @@ class ServiceRepository:
         return(
             self.db
             .query(Service)
-            .filter(Service.professional_id == professinals_id)
+            .filter(Service.professional_id == professional_id)
             .all()
         )

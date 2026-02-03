@@ -4,8 +4,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fast_agend.core.database import Base
 from sqlalchemy import Time, Numeric, ForeignKey, Date
 from decimal import Decimal
+import enum
+from sqlalchemy import Enum
 
-
+class UserRole(str, enum.Enum):
+    CLIENT = "CLIENT"
+    PROFESSIONAL = "PROFESSIONAL"
+    ADMIN = "ADMIN"
 
 class User(Base):
     __tablename__ = "users"
@@ -16,9 +21,10 @@ class User(Base):
     password: Mapped[str] = mapped_column(nullable=False)
     cpf: Mapped[str] = mapped_column(unique=True, nullable=False)
     phone: Mapped[str] = mapped_column(unique=True, nullable=False)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.CLIENT, nullable=False)
     is_email_verified: Mapped[bool] = mapped_column(default=False)
     is_phone_verified: Mapped[bool] = mapped_column(default=False)
-    professionals = relationship("Professional", back_populates="user")
+    professionals = relationship("Professional", back_populates="user", uselist=False)
     schedulings = relationship("Scheduling", back_populates="user")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 

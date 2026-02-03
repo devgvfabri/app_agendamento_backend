@@ -67,3 +67,8 @@ class ServicesService:
         self, establishment_id: int
     ) -> list[Service]:
         return self.repository.get_by_establishment(establishment_id)
+
+    def list_services_by_professional(
+        self, professional_id: int
+    ) -> list[Service]:
+        return self.repository.get_services_by_professional(professional_id)

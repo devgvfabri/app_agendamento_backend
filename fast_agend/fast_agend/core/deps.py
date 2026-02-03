@@ -8,7 +8,7 @@ def get_db():
     finally:
         db.close()
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from http import HTTPStatus
 from sqlalchemy.orm import Session
 from fast_agend.services.user_service import UserService
@@ -27,7 +27,7 @@ from fast_agend.repositories.establishment_repository import EstablishmentReposi
 from fast_agend.services.auth_service import AuthService
 from fast_agend.core.deps import get_db
 from fast_agend.security.password import oauth2_scheme, SECRET_KEY, ALGORITHM
-from fast_agend.models import User
+from fast_agend.models import User, UserRole
 from jose import JWTError, jwt
 
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
@@ -75,12 +75,14 @@ def get_service(db: Session = Depends(get_db)):
 def get_professional_service(db: Session = Depends(get_db)):
     return ProfessionalService(
         repository=ProfessionalRepository(db),
+        user_repo=UserRepository(db),
     )
 
 def get_availability_service(db: Session = Depends(get_db)):
     return AvailabilityService(
         AvailabilityRepository(db),
         SchedulingRepository(db),
+        ProfessionalRepository(db),
     )
 
 def get_scheduling_service(
@@ -92,3 +94,14 @@ def get_scheduling_service(
         AvailabilityRepository(db),
         ProfessionalRepository(db),
     )
+
+def require_role(*roles: UserRole):
+    def checker(user = Depends(get_current_user)):
+        if user.role not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sem permissão"
+            )
+        return user
+
+    return checker

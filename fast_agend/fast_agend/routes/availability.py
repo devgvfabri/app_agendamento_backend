@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from http import HTTPStatus
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-from fast_agend.core.deps import get_db
+from fast_agend.core.deps import get_db, require_role
 from fast_agend.repositories.availability_repository import AvailabilityRepository
 from fast_agend.services.availability_service import AvailabilityService, AvailabilityList
 from fast_agend.schemas import AvailabilitySchema, AvailabilityUpdateSchema, AvailabilityPublic
 from fast_agend.core.deps import get_availability_service, get_current_user
-from fast_agend.models import User
+from fast_agend.models import User, UserRole
 
 
 router = APIRouter(prefix="/availabilitys", tags=["Availability"])
@@ -18,6 +18,7 @@ def create_availability(
     db: Session = Depends(get_db),
     service: AvailabilityService = Depends(get_availability_service),
     current_user: User = Depends(get_current_user),
+    pro: User = Depends(require_role(UserRole.PROFESSIONAL)),
 ):
     return service.create_availability(db, availability, current_user)
 
@@ -33,6 +34,7 @@ def update_availability(
     db: Session = Depends(get_db),
     service: AvailabilityService = Depends(get_availability_service),
     current_user: User = Depends(get_current_user),
+    pro: User = Depends(require_role(UserRole.PROFESSIONAL)),
 ):
     updated = service.update_availability(
         db,
@@ -55,6 +57,7 @@ def delete_availabilityt(
     availability_id: int,
     service: AvailabilityService = Depends(get_availability_service),
     current_user: User = Depends(get_current_user),
+    pro: User = Depends(require_role(UserRole.PROFESSIONAL)),
 ):
 
     deleted = service.delete_availability(availability_id, current_user)
