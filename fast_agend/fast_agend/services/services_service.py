@@ -48,6 +48,16 @@ class ServicesService:
         if not service:
             return None
 
+        professional = self.professional_repo.get_by_id(
+            service.professional_id
+        )
+
+        if professional.id_user != user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="Você não tem permissão para alterar esta disponibilidade"
+            )
+
         data = service_data.model_dump(exclude_unset=True)
 
         for field, value in data.items():
@@ -59,6 +69,16 @@ class ServicesService:
         service = self.repository.get_by_id(service_id)
         if not service:
             return None
+
+        professional = self.professional_repo.get_by_id(
+            service.professional_id
+        )
+
+        if professional.id_user != user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="Você não tem permissão para alterar esta disponibilidade"
+            )
 
         self.repository.delete(service)
         return service

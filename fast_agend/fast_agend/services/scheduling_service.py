@@ -3,7 +3,7 @@ from fast_agend.repositories.professional_repository import ProfessionalReposito
 from fast_agend.repositories.service_repository import ServiceRepository
 from fast_agend.repositories.availability_repository import AvailabilityRepository
 from fast_agend.schemas import SchedulingSchema, SchedulingList, SchedulingUpdateSchema, SchedulingPublic, SchedulingCreateSchema, SchedulingStatus
-from fast_agend.models import Scheduling, User
+from fast_agend.models import Scheduling, User, UserRole
 from fast_agend.services.slot_service import normalize_time
 from fastapi import Depends, HTTPException, status
 from http import HTTPStatus
@@ -238,7 +238,16 @@ class SchedulingService:
         self.repository.delete(scheduling)
         return scheduling
 
-    def list_by_professional(self, professional_id: int):
+    def list_by_professional(self, user: User,  professional_id: int):
+
+        if user.role == UserRole.ADMIN:
+            return self.repository.list_all(date)
+
+        if user.role != UserRole.PROFESSIONAL:
+            raise HTTPException(403, "Apenas profissionais")
+
+        professional = self.professional_repo.get_by_user_id(user.id)
+    
         return self.repository.list_by_professional(professional_id)
 
     def confirm(self, scheduling_id: int, user: User):
@@ -286,11 +295,27 @@ class SchedulingService:
         scheduling.status = SchedulingStatus.CANCELLED
         return self.repository.update(scheduling)
 
-    def list_by_professional_date(self, professional_id: int, target_date: date):
+    def list_by_professional_date(self, professional_id: int, user: User, target_date: date):
+        if user.role == UserRole.ADMIN:
+            return self.repository.list_all(date)
+
+        if user.role != UserRole.PROFESSIONAL:
+            raise HTTPException(403, "Apenas profissionais")
+
         return self.repository.list_by_professional_and_date(professional_id, target_date)
 
     def list_by_user(self, user_id: int):
         return self.repository.list_by_user(user_id)
 
-    def list_by_user_date(self, user_id: int, target_date: date):
+    def list_by_user_secure(self, user_id: int, user: User):
+
+        if user.role != UserRole.ADMIN and user.id != user_id:
+            raise HTTPException(403, "Sem permissão")
+
+        return self.repository.list_by_user(user_id)
+
+    def list_by_user_date(self, user_id: int, user: User, target_date: date):
+        if user.role != UserRole.ADMIN and user.id != user_id:
+            raise HTTPException(403, "Sem permissão")
+
         return self.repository.list_by_user_and_date(user_id, target_date)

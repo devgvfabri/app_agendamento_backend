@@ -71,6 +71,16 @@ class AvailabilityService:
         if not availability:
             return None
 
+        professional = self.professional_repo.get_by_id(
+            availability.id_professional
+        )
+
+        if professional.id_user != user.id:
+            raise HTTPException(
+                403,
+                "Você não tem permissão para deletar esta disponibilidade"
+            )
+
         data = availability_data.model_dump(exclude_unset=True)
 
         start_time = data.get("start_time", availability.start_time)
@@ -112,6 +122,16 @@ class AvailabilityService:
         availability = self.repository.get_by_id(availability_id)
         if not availability:
             return None
+
+        professional = self.professional_repo.get_by_id(
+            availability.id_professional
+        )
+
+        if professional.id_user != user.id:
+            raise HTTPException(
+                403,
+                "Você não tem permissão para deletar esta disponibilidade"
+            )
 
         self.repository.delete(availability)
         return availability
