@@ -59,8 +59,9 @@ def delete_scheduling(
 def get_schedulings_by_professional(
     professional_id: int,
     service: SchedulingService = Depends(get_scheduling_service),
+    current_user: User = Depends(get_current_user),
 ):
-    schedulings = service.list_by_professional(professional_id)
+    schedulings = service.list_by_professional(current_user, professional_id)
 
     if not schedulings:
         raise HTTPException(
@@ -78,8 +79,9 @@ def get_schedulings_by_professional_date(
     professional_id: int,
     date: date,
     service: SchedulingService = Depends(get_scheduling_service),
+    current_user: User = Depends(get_current_user),
 ):
-    schedulings = service.list_by_professional_date(professional_id, date)
+    schedulings = service.list_by_professional_date(professional_id, current_user, date)
 
     if not schedulings:
         raise HTTPException(
@@ -93,43 +95,23 @@ def get_schedulings_by_professional_date(
         "date": date
     }
 
-@router.get("/users/{user_id}/schedulings", response_model=SchedulingUsersResponse)
+@router.get("/users/{user_id}/schedulings")
 def get_schedulings_by_client(
     user_id: int,
     service: SchedulingService = Depends(get_scheduling_service),
+    current_user: User = Depends(get_current_user)
 ):
-    schedulings = service.list_by_user(user_id)
+    return service.list_by_user_secure(user_id, current_user)
 
-    if not schedulings:
-        raise HTTPException(
-            status_code=404,
-            detail="Nenhum agendamento encontrado para este cliente"
-        )
+@router.get("/users/{user_id}/schedulingsdate", response_model=SchedulingUsersResponse) 
+def get_schedulings_by_users_date( user_id: int, date: date, service: SchedulingService = Depends(get_scheduling_service), current_user: User = Depends(get_current_user)
+): 
+    schedulings = service.list_by_user_date(user_id, current_user, date) 
+    if not schedulings: 
+        raise HTTPException( status_code=404, detail="Nenhum agendamento encontrado para este cliente" ) 
+        
+    return { "user_id": user_id, "schedulings": schedulings, "date": date }
 
-    return {
-        "user_id": user_id,
-        "schedulings": schedulings
-    }
-
-@router.get("/users/{user_id}/schedulingsdate", response_model=SchedulingUsersResponse)
-def get_schedulings_by_users_date(
-    user_id: int,
-    date: date,
-    service: SchedulingService = Depends(get_scheduling_service),
-):
-    schedulings = service.list_by_user_date(user_id, date)
-
-    if not schedulings:
-        raise HTTPException(
-            status_code=404,
-            detail="Nenhum agendamento encontrado para este cliente"
-        )
-
-    return {
-        "user_id": user_id,
-        "schedulings": schedulings,
-        "date": date
-    }
 
 @router.patch("/{scheduling_id}/confirm")
 def cancel_scheduling(
