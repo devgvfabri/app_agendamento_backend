@@ -238,16 +238,22 @@ class SchedulingService:
         self.repository.delete(scheduling)
         return scheduling
 
-    def list_by_professional(self, user: User,  professional_id: int):
+    def list_by_professional(self, current_user: User,  professional_id: int):
 
-        if user.role == UserRole.ADMIN:
+        if current_user.role == UserRole.ADMIN:
             return self.repository.list_all(date)
 
-        if user.role != UserRole.PROFESSIONAL:
+        if current_user.role != UserRole.PROFESSIONAL:
             raise HTTPException(403, "Apenas profissionais")
 
-        professional = self.professional_repo.get_by_user_id(user.id)
-    
+        professional = self.professional_repo.get_by_user_id(current_user.id)
+
+        if not professional:
+            raise HTTPException(404, "Profissional não encontrado")
+
+        if professional.id != professional_id:
+            raise HTTPException(403, "Você só pode acessar seus próprios agendamentos")
+
         return self.repository.list_by_professional(professional_id)
 
     def confirm(self, scheduling_id: int, user: User):
@@ -295,12 +301,20 @@ class SchedulingService:
         scheduling.status = SchedulingStatus.CANCELLED
         return self.repository.update(scheduling)
 
-    def list_by_professional_date(self, professional_id: int, user: User, target_date: date):
-        if user.role == UserRole.ADMIN:
+    def list_by_professional_date(self, professional_id: int, current_user: User, target_date: date):
+        if current_user.role == UserRole.ADMIN:
             return self.repository.list_all(date)
 
-        if user.role != UserRole.PROFESSIONAL:
+        if current_user.role != UserRole.PROFESSIONAL:
             raise HTTPException(403, "Apenas profissionais")
+
+        professional = self.professional_repo.get_by_user_id(current_user.id)
+
+        if not professional:
+            raise HTTPException(404, "Profissional não encontrado")
+
+        if professional.id != professional_id:
+            raise HTTPException(403, "Você só pode acessar seus próprios agendamentos")
 
         return self.repository.list_by_professional_and_date(professional_id, target_date)
 

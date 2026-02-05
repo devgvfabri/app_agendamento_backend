@@ -95,13 +95,17 @@ def get_schedulings_by_professional_date(
         "date": date
     }
 
-@router.get("/users/{user_id}/schedulings")
+@router.get("/users/{user_id}/schedulings",  response_model=SchedulingUsersResponse)
 def get_schedulings_by_client(
     user_id: int,
     service: SchedulingService = Depends(get_scheduling_service),
     current_user: User = Depends(get_current_user)
 ):
-    return service.list_by_user_secure(user_id, current_user)
+    schedulings = service.list_by_user_secure(user_id, current_user) 
+    if not schedulings: 
+        raise HTTPException( status_code=404, detail="Nenhum agendamento encontrado para este cliente" ) 
+        
+    return { "user_id": user_id, "schedulings": schedulings, "date": date }
 
 @router.get("/users/{user_id}/schedulingsdate", response_model=SchedulingUsersResponse) 
 def get_schedulings_by_users_date( user_id: int, date: date, service: SchedulingService = Depends(get_scheduling_service), current_user: User = Depends(get_current_user)
