@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from typing import Optional
 from datetime import time, date
 from decimal import Decimal
@@ -205,7 +205,6 @@ class SchedulingCreateSchema(BaseModel):
     date: date
     start_time: time
     status: SchedulingStatus = SchedulingStatus.PENDING
-    id_user_client: int
     id_professional: int
     id_establishment: int
     service_id: int

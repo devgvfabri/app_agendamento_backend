@@ -16,7 +16,9 @@ from fast_agend.exceptions.user_exceptions import InvalidCPFException, ExistingN
 from fast_agend.exceptions.user_exceptions import CPFAlreadyExistsException, EmailAlreadyExistsException, InvalidPasswordException
 from dotenv import load_dotenv
 import os
+from fast_agend.core.logging_config import setup_logging
 
+setup_logging()
 
 app = FastAPI(title='Backend do App de Agendamento')
 

@@ -3,6 +3,10 @@ from fast_agend.repositories.user_repository import UserRepository
 from fast_agend.schemas import ProfessionalSchema, ProfessionalUpdateSchema, ProfessionalPublic, ProfessionalList
 from fast_agend.models import Professional, User, UserRole
 from fastapi import Depends, HTTPException, status
+import logging
+
+logger = logging.getLogger("Professional")
+
 
 class ProfessionalService:
     def __init__(self, repository: ProfessionalRepository, user_repo: UserRepository):
@@ -21,6 +25,13 @@ class ProfessionalService:
             id_establishment=professional_data.id_establishment,
             specialty=professional_data.specialty,
             active=professional_data.active,
+        )
+
+        logger.info(
+            "Criando profissional | id_user=%d id_establishment=%d specialty=%s",
+            user.id,
+            professional_data.id_establishment,
+            professional_data.specialty,
         )
 
         user.role = UserRole.PROFESSIONAL

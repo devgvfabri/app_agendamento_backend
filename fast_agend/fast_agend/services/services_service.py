@@ -3,6 +3,10 @@ from fast_agend.repositories.professional_repository import ProfessionalReposito
 from fast_agend.schemas import ServiceSchema, ServiceList, ServiceUpdateSchema, ServicePublic
 from fast_agend.models import Service, User
 from fastapi import Depends, HTTPException, status
+import logging
+
+logger = logging.getLogger("Service")
+
 
 class ServicesService:
     def __init__(self, repository: ServiceRepository, professional_repo: ProfessionalRepository):
@@ -13,6 +17,18 @@ class ServicesService:
         professional = self.professional_repo.get_by_id(
             service_data.professional_id
         )
+
+        if service_data.price <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Preço deve ser maior que 0"
+            )
+
+        if service_data.duration_minutes <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Duração deve ser maior que 0"
+            )
 
         if not professional:
             raise HTTPException(
@@ -33,6 +49,14 @@ class ServicesService:
             price=service_data.price,
             service_establishment_id=service_data.service_establishment_id,
             professional_id=service_data.professional_id,
+        )
+
+        logger.info(
+            "Criando service | name=%s description=%s duration_minutes=%d price=%d",
+            service_data.name,
+            service_data.description,
+            service_data.duration_minutes,
+            service_data.price
         )
 
         return self.repository.create(service)

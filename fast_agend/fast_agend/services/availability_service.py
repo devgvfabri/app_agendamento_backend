@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, time, date
 from datetime import date as DateType
 from fast_agend.utils import normalize_time
+import logging
+
+logger = logging.getLogger("availability")
 
 
 class AvailabilityService:
@@ -59,6 +62,12 @@ class AvailabilityService:
             weekday=availability_data.weekday,
             start_time=availability_data.start_time,
             end_time=availability_data.end_time
+        )
+
+        logger.info(
+            "Criando disponibilidade | id_professional=%d weekday=%d ",
+            availability_data.id_professional,
+            availability_data.weekday
         )
 
         return self.repository.create(db, availability)
