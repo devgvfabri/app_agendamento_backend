@@ -53,5 +53,15 @@ class ProfessionalRepository:
             .filter(Professional.id_user == user_id)
             .first()
         )
+    
+    def get_by_id_and_establishment(self, professional_id: int, establishment_id: int):
+        return (
+            self.db.query(Professional)
+            .filter(
+                Professional.id == professional_id,
+                Professional.id_establishment  == establishment_id
+            )
+            .first()
+        )
 
     

@@ -9,6 +9,10 @@ from fastapi import Depends, HTTPException, status
 from http import HTTPStatus
 from datetime import datetime, timedelta, date
 from datetime import date as DateType
+import logging
+
+logger = logging.getLogger("Scheduling")
+
 
 ALLOWED_TRANSITIONS = {
     SchedulingStatus.PENDING: {
@@ -97,16 +101,56 @@ class SchedulingService:
                 detail="Horário indisponível para este profissional"
             )
 
+        service = self.service_repo.get_by_id(scheduling_data.service_id)
+
+        if not service:
+            logger.warning(
+                "Serviço não encontrado | service_id=%s user=%s",
+                scheduling_data.service_id,
+                user.id
+            )
+            raise HTTPException(404, "Serviço não encontrado")
+
+        if service.professional_id != scheduling_data.id_professional:
+            logger.warning(
+                "Serviço não pertence ao profissional | service=%s professional=%s user=%s",
+                service.id,
+                scheduling_data.id_professional,
+                user.id
+            )
+            raise HTTPException(
+                HTTPStatus.BAD_REQUEST,
+                "Este serviço não pertence ao profissional informado"
+            )
+
+        professional = self.professional_repo.get_by_id_and_establishment(
+            scheduling_data.id_professional,
+            scheduling_data.id_establishment
+        )
+
+        if not professional:
+            raise HTTPException(
+                HTTPStatus.BAD_REQUEST,
+                "Profissional não pertence a este estabelecimento"
+            )
+
         scheduling = Scheduling(
             date=scheduling_data.date,
             start_time=start_times,
             end_time=end_time,
             status=SchedulingStatus.PENDING,
-            id_user_client=scheduling_data.id_user_client,
+            id_user_client=user.id,
             id_professional=scheduling_data.id_professional,
             id_establishment=scheduling_data.id_establishment,
             service_id=scheduling_data.service_id,
             observation=scheduling_data.observation,
+        )
+        logger.info(
+            "Criando agendamento | user=%s professional=%s service=%s date=%s",
+            user.id,
+            scheduling_data.id_professional,
+            scheduling_data.service_id,
+            scheduling_data.date
         )
 
         return self.repository.create(scheduling)

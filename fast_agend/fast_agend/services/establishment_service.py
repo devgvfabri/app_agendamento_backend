@@ -4,6 +4,9 @@ from fast_agend.models import Establishment, User
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from http import HTTPStatus
+import logging
+
+logger = logging.getLogger("establishment")
 
 class EstablishmentService:
     def __init__(self, repository: EstablishmentRepository):
@@ -17,7 +20,15 @@ class EstablishmentService:
             opening_time=establishment_data.opening_time,
             closing_time=establishment_data.closing_time,
         )
+        print(f"Logger name: {logger.name} | Level: {logger.getEffectiveLevel()} | Disabled: {logger.disabled}")
 
+
+        logger.info(
+            "Criando estabelecimento | name=%s address=%s phone=%s",
+            establishment_data.name,
+            establishment_data.address,
+            establishment_data.phone,
+        )
         try:
             return self.repository.create(establishment)
 
